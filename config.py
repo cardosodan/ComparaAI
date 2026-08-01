@@ -17,6 +17,16 @@ BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
 
+def _normalizar_database_url(url: str) -> str:
+    # Railway (e antes dela o Heroku) provisiona Postgres com URL começando
+    # em "postgres://" — esquema antigo que o SQLAlchemy 1.4+/2.0 rejeita
+    # (exige "postgresql://"). Sem isso, colar a DATABASE_URL do Railway
+    # direto quebra a conexão com um erro de dialect não reconhecido.
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql://", 1)
+    return url
+
+
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "dev-secret-troque-em-producao"
     # "or" (não .get(key, default)) de propósito: .env costuma deixar
@@ -26,7 +36,9 @@ class Config:
     # os.environ.get(key, default) só cai no default quando a chave está
     # AUSENTE, não quando está vazia — sem o "or", o app tentava conectar
     # num banco "" e quebrava (achado rodando de verdade, não hipotético).
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or f"sqlite:///{BASE_DIR / 'comparaai.db'}"
+    SQLALCHEMY_DATABASE_URI = _normalizar_database_url(
+        os.environ.get("DATABASE_URL") or f"sqlite:///{BASE_DIR / 'comparaai.db'}"
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     GROQ_API_KEY = os.environ.get("GROQ_API_KEY") or ""

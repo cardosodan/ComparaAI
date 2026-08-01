@@ -46,6 +46,61 @@ Acesse http://127.0.0.1:5100/ — **porta 5100** (não 5000/5050/8080) de
 propósito, pra não conflitar com outros projetos locais (BreakTest já usa
 5050 nesta máquina).
 
+## Deploy (Railway)
+
+**Por que não GitHub Pages**: Pages só serve arquivo estático (HTML/CSS/
+JS) — o ComparaAI é uma aplicação Flask de verdade (rotas em Python,
+banco via SQLAlchemy, HTMX dependendo de endpoint no servidor, painel
+admin com POST, script de atualização de preço fazendo requisição pra
+sites externos). Nada disso roda sem um servidor executando código
+Python por trás.
+
+**Por que Railway, não Render**: usuário já usa Render pra outro site
+próprio — Railway resolve o mesmo problema (deploy direto do GitHub,
+free tier, Postgres incluso) sem misturar com o outro projeto.
+PythonAnywhere foi descartado: o free tier lá restringe requisição de
+saída a uma lista branca de domínios, o que quebraria justamente o
+script de atualização de preço (`atualizacao_precos.py`), que precisa
+alcançar sites externos arbitrários (Bemol, Brastemp, Electrolux, etc.).
+
+**Preparação já feita no projeto** (pra rodar puro `git push`/conectar o
+repo, sem precisar mexer em mais nada):
+- `Procfile` (`web: gunicorn run:app`) — Railway detecta automaticamente
+  via Nixpacks a partir de `requirements.txt` + `Procfile`, sem
+  configuração manual adicional.
+- `gunicorn` (servidor WSGI de produção — `python run.py` sozinho usa o
+  servidor de desenvolvimento do Flask, que não é seguro/eficiente pra
+  produção) e `psycopg2-binary` (driver Postgres) adicionados ao
+  `requirements.txt`.
+- `config.py`: `DATABASE_URL` normaliza `postgres://` → `postgresql://`
+  — o Postgres do Railway (herdado do Heroku) ainda entrega a URL no
+  esquema antigo, que o SQLAlchemy 1.4+/2.0 rejeita sem essa troca.
+- `app/static/css/tailwind.css` (a saída já COMPILADA do Tailwind) já
+  está versionada no git — o binário `tools/tailwindcss.exe` é só uma
+  ferramenta de desenvolvimento local (Windows), não precisa rodar (nem
+  rodaria) no servidor Linux do Railway.
+
+**Passo a passo**:
+1. Suba o repo pro GitHub (se ainda não estiver).
+2. No [Railway](https://railway.app), "New Project" → "Deploy from GitHub
+   repo" → escolha o repositório do ComparaAI.
+3. Adicione um serviço **Postgres** ao mesmo projeto (Railway cria a
+   variável `DATABASE_URL` sozinho, já injetada no serviço web).
+4. Nas variáveis de ambiente do serviço web, configure `SECRET_KEY` (uma
+   string aleatória qualquer) e, se quiser a atualização de preço via IA
+   funcionando, `GROQ_API_KEY`.
+5. Depois do primeiro deploy, rode UMA vez (aba "Shell" do Railway ou
+   `railway run python seed.py` via CLI) `python seed.py` — cria as
+   tabelas e popula o catálogo de demonstração. Sem isso o site sobe mas
+   fica sem nenhum produto (banco vazio).
+
+**Sobre persistência**: se preferir não usar Postgres (menos um serviço
+pra configurar), a `DATABASE_URL` pode ficar vazia e o app cai de volta
+pro SQLite local — mas o filesystem do Railway é efêmero por padrão
+(reseta a cada novo deploy), então o banco SQLite se perderia a cada
+deploy novo. Postgres (grátis dentro do free tier) evita esse problema;
+é a opção recomendada aqui.
+
 ## Rebuildar o CSS depois de mexer em `app/static/css/input.css`
 
 ```powershell
