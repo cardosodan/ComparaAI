@@ -705,9 +705,6 @@
   .pr-4 {
     padding-right: calc(var(--spacing) * 4);
   }
-  .pb-2 {
-    padding-bottom: calc(var(--spacing) * 2);
-  }
   .pb-4 {
     padding-bottom: calc(var(--spacing) * 4);
   }
@@ -1071,10 +1068,12 @@ button:active:not(:disabled), .btn-like:active {
 }
 .htmx-indicator {
   opacity: 0;
+  pointer-events: none;
   transition: opacity 150ms ease;
 }
 .htmx-request.htmx-indicator, .htmx-request .htmx-indicator {
   opacity: 1;
+  pointer-events: auto;
 }
 .busca-icone-carregando {
   display: none;

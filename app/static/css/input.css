@@ -58,11 +58,20 @@ button:active:not(:disabled), .btn-like:active {
    spinner do campo de busca. */
 .htmx-indicator {
   opacity: 0;
+  /* Bug real encontrado: o skeleton de #resultados-conteudo é um overlay
+     absoluto (absolute inset-0) cobrindo a grade de produtos inteira —
+     sem pointer-events aqui, ele ficava INVISÍVEL mas continuava
+     capturando todo clique por cima dos cards o tempo todo (não só
+     durante o carregamento), impedindo qualquer navegação pra página de
+     produto. Some de vista E de interação junto; só volta a capturar
+     clique quando .htmx-request ligar ele de propósito (loading real). */
+  pointer-events: none;
   transition: opacity 150ms ease;
 }
 .htmx-request.htmx-indicator,
 .htmx-request .htmx-indicator {
   opacity: 1;
+  pointer-events: auto;
 }
 
 /* Ícone animado do campo de busca (home.html): lupa parada por padrão,
