@@ -390,6 +390,46 @@ Luiza, Casas Bahia, Loja Oficial, Eletro Norte) continuam com preço/URL
 gerados, esperando o mesmo tipo de trabalho de correspondência manual
 antes de virarem reais também.
 
+## Ofertas sem link real: busca de apoio (e o erro que quase virou padrão)
+
+Quando `Price.url` não existe (loja sem dado real extraído — hoje só a
+Bemol tem, ver seção acima), a tabela de comparação (`produto.html`)
+mostra "Ver na loja" em vez de "Ver oferta", apontando pra
+`pricing.url_busca_de_apoio()`.
+
+**Histórico do que deu errado antes de chegar nessa versão** (vale
+registrar pra não repetir): a 1ª tentativa gerava uma URL de busca
+"chutada" por loja (ex: `/s?q=`, `/busca/{q}/`) e validava só com
+`curl` checando o STATUS HTTP. Isso se provou insuficiente de duas
+formas diferentes:
+1. **Casas Bahia** (`/s?q=`, chute por usar a mesma plataforma VTEX de
+   Bemol/Brastemp/Consul): usuário testou no navegador e mandou print —
+   página 404 real da Casas Bahia. Nunca funcionou; o bloqueio de bot
+   (que já impedia validar via curl) escondia que o palpite também
+   estava errado.
+2. **Brastemp** (`/search?q=`): esse retornava HTTP 200 nos meus testes
+   — mas investigando o CONTEÚDO da página (via WebFetch) depois do
+   susto da Casas Bahia, a página real dizia "não encontramos nenhum
+   resultado para 'search'": o nome do parâmetro de busca estava errado
+   e a busca nunca rodava de verdade, mesmo com a página carregando sem
+   erro nenhum. **Status 200 não é prova de que uma busca funciona**, só
+   de que o servidor respondeu alguma coisa.
+
+**Versão final, bem mais conservadora**: `_PADROES_BUSCA_POR_SITE` só
+tem UMA entrada — Amazon (`/s?k={q}`), um formato de busca global,
+extremamente estável, usado há mais de uma década em todos os países
+(não é um chute novo pra esse projeto, diferente dos outros). Qualquer
+outra loja (Magazine Luiza, Casas Bahia, Brastemp, Consul, Samsung, LG,
+Electrolux) cai na **homepage real do site** — menos preciso (não entra
+já com a busca pronta), mas nunca mais aponta pra um parâmetro errado ou
+um caminho que não existe. `_SITE_OFICIAL_POR_MARCA` também corrige um
+bug pré-existente: "Loja Oficial da Marca" sempre apontava pro site da
+Electrolux mesmo pra produto Brastemp/Consul/Samsung/LG — agora cada
+marca vai pro próprio site oficial de verdade.
+
+`None` só quando a própria loja não tem site nenhum (Eletro Norte, loja
+física fictícia sem `website_url`) — tabela mostra "Sem site" nesse caso.
+
 ## Painel admin — busca e toggle (polish adicional)
 
 - Barra de busca (Alpine.js, filtro client-side por nome/modelo/marca —

@@ -51,28 +51,32 @@ def tempo_relativo(momento: datetime, agora: datetime) -> str:
 
 
 # Padrão de busca REAL de cada loja (não uma URL de produto específico —
-# isso é o `Price.url`, só existe de verdade pra Bemol hoje). Testado um
-# por um via curl (com User-Agent de navegador) antes de usar qualquer um
-# destes: Amazon (/s?k=), Brastemp/Consul (/s?q=, mesma plataforma VTEX)
-# e Samsung/LG (/search) responderam 200 de verdade. Usuário pediu
-# explicitamente pra entrar no site de verdade em vez de cair numa busca
-# do Google — por isso essa tabela existe em vez do fallback anterior.
+# isso é o `Price.url`, só existe de verdade pra Bemol hoje).
+#
+# HISTÓRICO IMPORTANTE (não repetir o erro): a 1ª versão desta tabela
+# tinha uma entrada por loja, "confirmada" só por status HTTP 200 via
+# curl. Isso se provou insuficiente de DUAS formas diferentes, uma
+# reportada pelo usuário e outra achada ao investigar a primeira:
+# 1. Casas Bahia (`/s?q=`, chute por ela usar a mesma plataforma VTEX de
+#    Bemol/Brastemp/Consul): usuário mandou print — página 404 REAL da
+#    Casas Bahia. O chute estava errado, 200 nunca veio, era bloqueio de
+#    bot disfarçado de sucesso.
+# 2. Brastemp (`/search?q=`): sim, retornou 200 — mas o CONTEÚDO da
+#    página (conferido via WebFetch depois do susto da Casas Bahia) é
+#    "não encontramos nenhum resultado para 'search'" — ou seja, o nome
+#    do parâmetro (`q`) está errado, a página carrega mas a busca em si
+#    nunca roda. Status 200 não é prova de busca funcionando, só de que
+#    o servidor respondeu alguma coisa.
+# Diante disso, só entra aqui o que tem confiança REAL (não só status
+# code): o formato de busca do Amazon (`/s?k=`) é um padrão global,
+# extremamente estável, usado há mais de uma década em todos os países —
+# não é um chute novo pra esse projeto. Todo o resto (Magazine Luiza,
+# Casas Bahia, Brastemp, Consul, Samsung, LG, Electrolux) fica de fora de
+# propósito e cai no fallback de HOMEPAGE em `url_busca_de_apoio` — menos
+# preciso, mas nunca mais um link inventado que erra o parâmetro ou bate
+# num 404 real.
 _PADROES_BUSCA_POR_SITE = {
     "https://www.amazon.com.br": "https://www.amazon.com.br/s?k={q}",
-    "https://www.magazineluiza.com.br": "https://www.magazineluiza.com.br/busca/{q}/",
-    # Casas Bahia bloqueou toda tentativa de verificação automatizada (403,
-    # mesmo bloqueio de bot documentado em atualizacao_precos.py) — mas é
-    # VTEX como Bemol/Brastemp/Consul, então usa o mesmo padrão /s?q= dessa
-    # plataforma (alta confiança mesmo sem conseguir confirmar por curl).
-    "https://www.casasbahia.com.br": "https://www.casasbahia.com.br/s?q={q}",
-    "https://www.brastemp.com.br": "https://www.brastemp.com.br/search?q={q}",
-    "https://www.consul.com.br": "https://www.consul.com.br/s?q={q}",
-    "https://www.samsung.com/br": "https://www.samsung.com/br/search/?searchvalue={q}",
-    "https://www.lg.com/br": "https://www.lg.com/br/search?search={q}",
-    # Electrolux: toda URL com query bateu 503 nos meus testes (só a home
-    # responde 200) — sem padrão confirmado, fica de fora do dict de
-    # propósito e cai no fallback de homepage abaixo em vez de arriscar
-    # outra URL inventada.
 }
 
 # "Loja Oficial da Marca" no seed sempre apontava pro site da Electrolux
