@@ -13,8 +13,10 @@
 
   <!-- Alpine.js: interatividade leve (menu mobile, dropdowns, transições) -->
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <!-- HTMX: busca dinâmica sem recarregar página (usado a partir do Passo 4/5) -->
+  <!-- HTMX: busca dinâmica sem recarregar página (autocomplete desde o Passo 4) -->
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <!-- Lucide Icons: <i data-lucide="nome"></i>, renderizado em SVG por lucide.createIcons() -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   {% block extra_head %}{% endblock %}
 
@@ -30,5 +32,13 @@
   {% include "components/footer.html" %}
 
   {% block extra_scripts %}{% endblock %}
+
+  <script>
+    lucide.createIcons();
+    // Reconstrói os ícones depois de qualquer troca de conteúdo via HTMX
+    // (ex: autocomplete) — sem isso, <i data-lucide="..."> injetado depois
+    // do carregamento inicial ficaria sem virar SVG.
+    document.body.addEventListener("htmx:afterSwap", () => lucide.createIcons());
+  </script>
 </body>
 </html>

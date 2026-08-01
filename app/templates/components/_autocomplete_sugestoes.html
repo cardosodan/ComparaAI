@@ -1,0 +1,24 @@
+{# Fragmento HTMX (não é uma página inteira) — devolvido por /busca/sugestoes
+   e injetado dentro do dropdown de autocomplete da home. #}
+{% if termo|length < 2 %}
+{% elif sugestoes %}
+  <ul class="divide-y divide-border">
+    {% for produto in sugestoes %}
+      <li>
+        <a href="{{ url_for('product.detalhe', slug=produto.slug) }}"
+           class="flex items-center justify-between gap-4 px-4 py-3 hover:bg-elevated transition-colors">
+          <span class="text-sm text-ink">
+            <span class="text-ink-muted">{{ produto.brand }}</span> {{ produto.name.split(" ", 1)[1] if " " in produto.name else produto.name }}
+          </span>
+          <span class="text-sm font-display font-semibold text-ink whitespace-nowrap">
+            R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}
+          </span>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="px-4 py-3 text-sm text-ink-muted">
+    Nenhum produto encontrado para “{{ termo }}”.
+  </p>
+{% endif %}

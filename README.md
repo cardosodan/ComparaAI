@@ -4,8 +4,8 @@ Comparador de preços de eletrodomésticos — Fase 1 (MVP): geladeiras, dados
 mockados, rodando localmente. Nome provisório (placeholder), ver seção
 "Nome do projeto" do brief original.
 
-**Status: Passo 3 concluído** (layout base — navbar, footer, cores/tipografia).
-Próximo passo: home page com busca.
+**Status: Passo 4 concluído** (home page com busca/autocomplete).
+Próximo passo: página de resultados de busca + filtros.
 
 ## Stack
 
@@ -108,6 +108,30 @@ hardcoded nos templates; categoria nova no banco aparece sozinha).
   escala de cor/tipografia (cartão de produto, badges, hierarquia de texto)
   — some no Passo 4 quando a home de verdade entrar.
 
+## Home page + busca (Passo 4)
+
+- **Hero + busca central** com autocomplete via HTMX (`/busca/sugestoes`,
+  `app/services/search.py`): digita 2+ letras, aparece dropdown com
+  produtos batendo — sem recarregar a página.
+- **Busca funciona por nome genérico ("geladeira") E por marca/modelo
+  específico** ("Samsung", "RT46") — o brief pede isso explicitamente
+  (seção 6.2). Achado um bug real testando: "geladeira" não aparece em
+  NENHUM `Product.name/brand/model` (é nome da categoria, não do
+  produto) — corrigido com um `join(Category)` na busca.
+- **Categorias em destaque**: Geladeiras clicável (leva pra busca),
+  Fogões/Lava-louças/Micro-ondas com selo "em breve" — ícones via Lucide
+  (CDN, `<i data-lucide="...">` + `lucide.createIcons()`, também
+  re-chamado depois de todo swap do HTMX pra ícone injetado dinamicamente
+  não ficar sem renderizar).
+- **"Mais buscados"**: grid de cards de produto (`components/
+  product_card.html`, macro Jinja reutilizável — mesmo card volta no
+  Passo 5). Sem foto de produto real ainda (Fase 1) — ícone genérico de
+  geladeira no lugar de `<img>` quebrada.
+- **3 blocos de proposta de valor**, como pedido.
+- **Stubs temporários** `/busca` e `/produto/<slug>` — só pra clicar em
+  qualquer busca/card da home não cair num 404 antes dos Passos 5/6
+  existirem de verdade. Ficam óbvios (dizem "Em construção — Passo X").
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
@@ -134,7 +158,7 @@ requirements.txt
 - [x] 1. Setup do projeto Flask + estrutura de pastas + config do Tailwind
 - [x] 2. Modelos de banco (`models.py`) + script de seed com dados mockados
 - [x] 3. Layout base (`base.html`) com navbar, footer, sistema de cores/tipografia
-- [ ] 4. Home page com busca
+- [x] 4. Home page com busca
 - [ ] 5. Rota e template de resultados de busca + filtros
 - [ ] 6. Página de produto com tabela comparativa e gráfico de histórico
 - [ ] 7. Ajustes finos de responsividade e microinterações

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} — ComparaAI{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-20 text-center">
+  <p class="text-sm font-semibold text-accent uppercase tracking-wide">Em construção</p>
+  <h1 class="font-display text-3xl font-bold text-ink mt-2">{{ titulo }}</h1>
+  {% if termo %}
+    <p class="mt-3 text-ink-muted">Você buscou por “{{ termo }}”.</p>
+  {% endif %}
+  <p class="mt-4 text-ink-muted">
+    Esta página ainda não existe de verdade — chega no <strong class="text-ink">{{ passo }}</strong>
+    da implementação. Por enquanto é só um placeholder pra o fluxo de navegação
+    não cair num erro 404.
+  </p>
+  <a href="{{ url_for('main.index') }}" class="inline-block mt-6 text-accent hover:text-accent-hover font-medium">
+    ← Voltar pra home
+  </a>
+</div>
+{% endblock %}

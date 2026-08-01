@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% from "components/product_card.html" import cartao_produto %}
+
+{% block content %}
+
+<!-- Hero + busca -->
+<section class="max-w-4xl mx-auto px-4 sm:px-6 pt-16 pb-20 text-center">
+  <h1 class="font-display text-4xl sm:text-5xl font-bold text-ink leading-tight">
+    Compare preços de eletrodomésticos<br class="hidden sm:block"> em segundos
+  </h1>
+  <p class="mt-4 text-lg text-ink-muted max-w-xl mx-auto">
+    Uma busca só, todas as lojas — online e físicas — sem abrir 10 abas
+    pra achar o melhor preço.
+  </p>
+
+  <div x-data="{ aberto: false }" class="relative mt-8 max-w-xl mx-auto">
+    <form action="{{ url_for('main.busca') }}" method="get" class="relative">
+      <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-faint"></i>
+      <input
+        type="text"
+        name="q"
+        autocomplete="off"
+        placeholder="Busque por “geladeira”, “Electrolux” ou um modelo..."
+        class="w-full pl-12 pr-4 py-4 rounded-2xl bg-surface border border-border text-ink placeholder:text-ink-faint
+               focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent transition-shadow"
+        hx-get="{{ url_for('main.busca_sugestoes') }}"
+        hx-trigger="keyup changed delay:300ms"
+        hx-target="#sugestoes-busca"
+        @keyup="aberto = $event.target.value.trim().length >= 2"
+        @click.outside="aberto = false"
+      >
+    </form>
+    <div
+      id="sugestoes-busca"
+      x-show="aberto"
+      x-cloak
+      x-transition
+      class="absolute z-40 mt-2 w-full text-left bg-surface border border-border rounded-2xl shadow-xl shadow-black/30 overflow-hidden"
+    ></div>
+  </div>
+</section>
+
+<!-- Categorias em destaque -->
+<section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
+  <h2 class="font-display text-xl font-bold text-ink mb-5">Categorias</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    {% for categoria in categorias_nav %}
+      {% if categoria.active %}
+        <a href="{{ url_for('main.busca', q='geladeira') }}"
+           class="group bg-surface border border-border rounded-2xl p-5 flex flex-col items-center gap-3 text-center
+                  hover:border-accent/40 hover:-translate-y-1 transition-all duration-150">
+          <i data-lucide="{{ categoria.icon }}" class="w-8 h-8 text-accent"></i>
+          <span class="text-sm font-semibold text-ink group-hover:text-accent transition-colors">{{ categoria.name }}</span>
+        </a>
+      {% else %}
+        <div class="bg-surface/50 border border-border rounded-2xl p-5 flex flex-col items-center gap-3 text-center opacity-60">
+          <i data-lucide="{{ categoria.icon }}" class="w-8 h-8 text-ink-faint"></i>
+          <span class="text-sm font-semibold text-ink-muted">{{ categoria.name }}</span>
+          <span class="text-[10px] uppercase tracking-wide text-ink-faint -mt-2">Em breve</span>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Mais buscados -->
+{% if mais_buscados %}
+<section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
+  <h2 class="font-display text-xl font-bold text-ink mb-5">Mais buscados</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    {% for produto in mais_buscados %}
+      {{ cartao_produto(produto) }}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Proposta de valor -->
+<section class="max-w-5xl mx-auto px-4 sm:px-6 pb-20">
+  <div class="grid sm:grid-cols-3 gap-6">
+    <div class="text-center sm:text-left">
+      <i data-lucide="zap" class="w-8 h-8 text-accent mx-auto sm:mx-0"></i>
+      <p class="font-display font-bold text-ink mt-3">Compare em segundos</p>
+      <p class="text-sm text-ink-muted mt-1">
+        Busque uma vez e veja o preço em várias lojas ao mesmo tempo, sem
+        abrir aba por aba.
+      </p>
+    </div>
+    <div class="text-center sm:text-left">
+      <i data-lucide="shield-check" class="w-8 h-8 text-accent mx-auto sm:mx-0"></i>
+      <p class="font-display font-bold text-ink mt-3">Preço real, sem enganação</p>
+      <p class="text-sm text-ink-muted mt-1">
+        Histórico de preço de verdade, pra você saber se aquela "promoção"
+        é real ou só marketing.
+      </p>
+    </div>
+    <div class="text-center sm:text-left">
+      <i data-lucide="store" class="w-8 h-8 text-accent mx-auto sm:mx-0"></i>
+      <p class="font-display font-bold text-ink mt-3">Loja online ou física, você escolhe</p>
+      <p class="text-sm text-ink-muted mt-1">
+        Compare também com lojas físicas da sua cidade — nem tudo precisa
+        vir pelo correio.
+      </p>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

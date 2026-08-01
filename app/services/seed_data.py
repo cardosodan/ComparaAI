@@ -17,7 +17,7 @@ random.seed(42)
 CATEGORIAS = [
     {"name": "Geladeiras", "slug": "geladeiras", "icon": "refrigerator", "active": True},
     {"name": "Fogões", "slug": "fogoes", "icon": "flame", "active": False},
-    {"name": "Lava-louças", "slug": "lava-loucas", "icon": "waves", "active": False},
+    {"name": "Lava-louças", "slug": "lava-loucas", "icon": "utensils", "active": False},
     {"name": "Micro-ondas", "slug": "micro-ondas", "icon": "microwave", "active": False},
 ]
 
