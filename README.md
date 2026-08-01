@@ -4,8 +4,8 @@ Comparador de preços de eletrodomésticos — Fase 1 (MVP): geladeiras, dados
 mockados, rodando localmente. Nome provisório (placeholder), ver seção
 "Nome do projeto" do brief original.
 
-**Status: Passo 1 concluído** (setup do projeto + estrutura de pastas +
-Tailwind). Próximo passo: modelos de banco + seed de dados mockados.
+**Status: Passo 2 concluído** (modelos de banco + seed de dados mockados).
+Próximo passo: layout base (`base.html`).
 
 ## Stack
 
@@ -62,6 +62,33 @@ customizados (`--color-base`, `--color-accent`, etc.) ficam direto no
 - Fontes: **Space Grotesk** (`font-display`, títulos) + **Inter**
   (`font-body`, corpo de texto), via Google Fonts.
 
+## Banco de dados e seed
+
+Modelos em `app/models.py`: `Category` → `Product` → `Price` (preço ATUAL
+por par produto+loja) + `PriceHistory` (série temporal, independente de
+`Price` — alimenta o gráfico mesmo se uma loja parar de vender o produto).
+Migrations via Flask-Migrate (`migrations/`), banco SQLite versionado
+localmente (`comparaai.db`, gitignored).
+
+```powershell
+flask db upgrade      # aplica as migrations (cria as tabelas)
+python seed.py        # zera e repopula com dados mockados
+```
+
+`seed.py` gera (dados em `app/services/seed_data.py`, preços calculados
+por código a partir de um preço-base + variação por loja, não digitados um
+a um):
+- 4 categorias (só **Geladeiras** ativa; Fogões/Lava-louças/Micro-ondas
+  como "em breve", sem produtos)
+- 6 lojas: 4 online (Amazon, Magazine Luiza, Casas Bahia, Loja Oficial da
+  Marca) + 2 físicas em Manaus (Bemol, Eletro Norte)
+- 10 geladeiras (Electrolux, Brastemp, Consul, Samsung, LG), cada uma com
+  3-5 ofertas de lojas diferentes — **todo produto tem garantidamente
+  pelo menos 1 opção física**, o diferencial central do produto
+- Histórico de preço: 31 pontos (últimos 30 dias + hoje) por oferta
+  produto+loja, caminho aleatório suave com leve tendência de queda —
+  bom material pro gráfico do Passo 6
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
@@ -86,7 +113,7 @@ requirements.txt
 ## Passos já feitos / próximos (ver brief original, seção 9)
 
 - [x] 1. Setup do projeto Flask + estrutura de pastas + config do Tailwind
-- [ ] 2. Modelos de banco (`models.py`) + script de seed com dados mockados
+- [x] 2. Modelos de banco (`models.py`) + script de seed com dados mockados
 - [ ] 3. Layout base (`base.html`) com navbar, footer, sistema de cores/tipografia
 - [ ] 4. Home page com busca
 - [ ] 5. Rota e template de resultados de busca + filtros
