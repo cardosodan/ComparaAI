@@ -4,9 +4,12 @@ Comparador de preços de eletrodomésticos — Fase 1 (MVP): geladeiras, dados
 mockados, rodando localmente. Nome provisório (placeholder), ver seção
 "Nome do projeto" do brief original.
 
-**Status: MVP completo (Passos 1-8 do brief original)** — busca com
-autocomplete, resultados com filtros, página de produto com comparação de
-preços e histórico, painel admin, microinterações e skeleton loading.
+**Status: MVP completo (Passos 1-8 do brief original) + Fase 2 iniciada**
+(atualização automática de preços) — busca com autocomplete, resultados
+com filtros, página de produto com comparação de preços e histórico,
+painel admin, microinterações e skeleton loading, e um pipeline real de
+atualização automática de preço (JSON-LD + Groq como fallback), já
+testado contra uma página real de e-commerce.
 
 ## Stack
 
@@ -250,6 +253,88 @@ corrigido no caminho: `Model.query.get_or_404()` é API legada do
 SQLAlchemy 2.0 (gera warning) — trocado por `db.get_or_404(Model, id)`,
 o helper atual do Flask-SQLAlchemy 3.x.
 
+## Atualização automática de preços (Fase 2, pedido explícito do usuário)
+
+Decisão de produto do usuário, no meio da Fase 1: o painel admin (Passo 8)
+deve ser só um recurso de **emergência**, não a fonte principal de preço —
+preço e foto de verdade devem vir automaticamente das próprias lojas que o
+site linka. `app/services/atualizacao_precos.py` implementa isso com uma
+estratégia em 2 camadas:
+
+1. **Dados estruturados (JSON-LD/schema.org) primeiro** — muita loja já
+   publica um bloco `<script type="application/ld+json">` com
+   `@type: Product` (preço, disponibilidade, imagem) pra SEO. Quando existe,
+   é sempre preferível: instantâneo, de graça, sem IA nenhuma envolvida.
+2. **Groq (LLM) como fallback**, só quando o site não publica esse schema.
+   **Importante ser honesto sobre o que isso é**: a Groq sozinha NÃO navega
+   na internet — é uma API de inferência sobre um modelo já treinado, sem
+   acesso à web ao vivo por conta própria. O fluxo real é: este módulo busca
+   a página via HTTP (`requests`, respeitando `robots.txt` antes de
+   qualquer tentativa) e só DEPOIS manda o texto extraído pra Groq, que
+   funciona como um "parser inteligente" — mais resistente a mudança de
+   layout do site que um scraper de seletor CSS fixo, mas não substitui a
+   busca em si.
+
+### Testado contra uma página REAL (não só teoria)
+
+Antes de escrever qualquer scraper "no escuro", chequei `robots.txt` das 6
+lojas do seed:
+
+| Loja | Resultado |
+|---|---|
+| Amazon | Permite (`/dp/...`) |
+| Bemol | Permite (cita `ClaudeBot` explicitamente como bot permitido; bloqueia nomeadamente o `Amazonbot`) |
+| Magazine Luiza | **Bloqueia até o próprio `robots.txt`** (403, proteção anti-bot Akamai) |
+| Casas Bahia | **Bloqueia até o próprio `robots.txt`** (403) |
+
+Com isso confirmado, testei o pipeline inteiro contra uma página REAL da
+Bemol (achada via sitemap público:
+`bemol.com.br/geladeira-consul-frost-free-300-litros-freezer-supercapacidade-branca-crb36ab/p`):
+
+- Extração via JSON-LD funcionou de primeira — preço exato (R$ 2.449),
+  sem precisar de nenhuma chamada à Groq.
+- **Bug real encontrado e corrigido no processo**: a disponibilidade
+  (`availability`) mora dentro da oferta INDIVIDUAL (`offers.offers[0]`),
+  não no nível agregado (`AggregateOffer`) — minha primeira versão lia do
+  nível errado e todo produto aparecia "em estoque" mesmo quando a página
+  dizia `OutOfStock`. Confirmado comparando duas leituras da mesma página
+  ao vivo antes de fechar o fix.
+- Depois do fix: `atualizar_oferta()` rodou contra a URL real, gravou
+  `Price.price = 2449.00` e `Price.in_stock = False` (batendo exatamente
+  com o que a página real mostrava), e criou um novo ponto em
+  `PriceHistory` — confirmado consultando o banco depois, banco resetado
+  pro estado limpo do seed em seguida.
+
+### Como rodar
+
+```powershell
+# .env precisa ter GROQ_API_KEY preenchida (grátis em console.groq.com)
+venv\Scripts\python.exe atualizar_precos.py
+```
+
+Pensado pra rodar 1x/dia via **Agendador de Tarefas do Windows**: Criar
+Tarefa Básica → Diariamente → Ação "Iniciar um programa" → Programa:
+`C:\caminho\pra\ComparaAI\venv\Scripts\python.exe` → Argumentos:
+`atualizar_precos.py` → "Iniciar em": `C:\caminho\pra\ComparaAI`.
+
+### Limitação importante, honesta
+
+**As URLs do seed (`Price.url`) são placeholders fictícios** (ex:
+`amazon.com.br/produto/<slug>`, que não existe de verdade) — o pipeline
+não vai achar nada útil rodando contra o banco de demonstração como está.
+Pra virar útil de verdade, `Price.url` de cada oferta precisa apontar pra
+uma página REAL de produto na loja certa (manual, uma vez por produto/
+loja — não tem como automatizar ESSA parte, é decisão de negócio "qual
+produto de qual loja corresponde a qual produto nosso").
+
+Continua valendo o que já dizia o brief original: scraping esbarra em
+Termos de Uso de muitos e-commerces (Magazine Luiza/Casas Bahia bloqueiam
+ativamente, confirmado acima); a fonte mais estável e sem risco legal pra
+escalar isso de verdade continua sendo um programa de afiliados oficial
+(Amazon Associates, Awin, Lomadee) — esse pipeline aqui é o caminho pra
+lojas que não tiverem isso disponível (ex: Bemol/lojas físicas locais
+com site próprio).
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
@@ -258,17 +343,22 @@ de pastas:
 
 ```
 app/
-├── routes/       # blueprints (main, product, admin — este último ainda não existe)
-├── services/     # lógica de busca/matching, seed de dados
+├── routes/       # blueprints: main (home/busca), product (detalhe), admin (edição manual)
+├── services/     # search (busca/filtros/similares), pricing (specs/histórico/tempo relativo),
+│                 # seed_data (dados mockados), atualizacao_precos (Fase 2: JSON-LD + Groq)
 ├── static/       # css (input.css fonte, tailwind.css compilado), js, img
 ├── templates/    # Jinja2 (components/ pra partials reutilizáveis)
-├── models.py     # Category, Product, Store, Price, PriceHistory (Passo 2)
+├── models.py     # Category, Product, Store, Price, PriceHistory
 └── __init__.py   # app factory
+migrations/       # Flask-Migrate/Alembic — versionado (é o histórico real do schema)
 tools/
 └── tailwindcss.exe   # CLI standalone do Tailwind (~110MB, gitignored — ver "Como rodar")
 config.py
 run.py
+seed.py             # popula o banco com dados mockados (Fase 1)
+atualizar_precos.py # atualização automática de preço (Fase 2, ver seção acima)
 requirements.txt
+.env                # GROQ_API_KEY, SECRET_KEY, DATABASE_URL — gitignored, nunca versionado
 ```
 
 ## Passos já feitos / próximos (ver brief original, seção 9)
