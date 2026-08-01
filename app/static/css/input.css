@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+/* Tokens de design do ComparaAI — Tailwind v4 (config CSS-first, sem
+   tailwind.config.js). Paleta escura/sofisticada (grafite azulado, tipo
+   Linear.app) como base, com UM acento vibrante (verde-lima, remete a
+   "economia/oferta") pros CTAs e badges de "melhor preço" — evitar
+   qualquer segunda cor vibrante disputando atenção com o acento. */
+@theme {
+  --color-base: #0B1220;
+  --color-surface: #121B2E;
+  --color-elevated: #1B2740;
+  --color-elevated-hover: #23305090;
+
+  --color-accent: #B4F42B;
+  --color-accent-hover: #C4FF4A;
+  --color-accent-ink: #10190A;
+  /* texto ESCURO em cima do acento (o verde-lima é claro demais pra texto claro em cima) */
+
+  /* Contraste verificado (fórmula de luminância relativa WCAG) contra
+     --color-base/--color-surface antes de fechar os tons: ink 16.6:1,
+     ink-muted 6.5-7.1:1 (os dois seguros pra texto de corpo normal).
+     ink-faint fica em 3.3:1 de propósito — só pra texto grande/decorativo
+     (legendas de apoio, bordas), nunca corpo de texto normal. */
+  --color-ink: #EEF2F8;
+  --color-ink-muted: #93A0B8;
+  --color-ink-faint: #5B6787;
+
+  --color-border: #24314F;
+
+  --font-display: "Space Grotesk", "Segoe UI", sans-serif;
+  --font-body: "Inter", "Segoe UI", sans-serif;
+}
+
+body {
+  background-color: var(--color-base);
+  color: var(--color-ink);
+}

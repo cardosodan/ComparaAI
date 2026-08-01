@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ComparaAI — Setup OK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
+</head>
+<body class="bg-base text-ink font-body min-h-screen flex items-center justify-center p-6">
+  <div class="max-w-lg w-full bg-surface border border-border rounded-2xl p-8 space-y-6">
+    <h1 class="font-display text-3xl font-bold text-ink">ComparaAI</h1>
+    <p class="text-ink-muted">
+      Passo 1 concluído: Flask + estrutura de pastas + Tailwind (v4, CLI standalone) rodando.
+      Esta página some no Passo 3, quando <code class="text-ink-faint">base.html</code> de verdade entrar.
+    </p>
+
+    <div class="bg-elevated rounded-xl p-4 space-y-2">
+      <p class="text-sm text-ink-muted">Cartão de exemplo (bg-elevated)</p>
+      <p class="font-display text-xl">Geladeira Frost Free 400L</p>
+      <p class="text-ink-muted text-sm">A partir de</p>
+      <p class="font-display text-2xl font-bold">R$ 2.499<span class="text-base font-normal">,90</span></p>
+    </div>
+
+    <button class="w-full bg-accent hover:bg-accent-hover text-accent-ink font-display font-bold py-3 rounded-xl transition-colors">
+      Melhor preço — Ver oferta
+    </button>
+  </div>
+</body>
+</html>
