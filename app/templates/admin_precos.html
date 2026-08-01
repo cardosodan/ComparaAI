@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Painel administrativo — ComparaAI{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+  <p class="text-sm font-semibold text-accent uppercase tracking-wide">Painel administrativo</p>
+  <h1 class="font-display text-2xl font-bold text-ink mt-1">Editar preços</h1>
+  <p class="text-sm text-ink-muted mt-2 mb-8 max-w-2xl">
+    Simula o fluxo que uma loja física parceira vai usar no futuro pra
+    atualizar o próprio preço (brief seção 6.4) — sem login ainda
+    (Fase 1). Editar aqui muda o preço ATUAL; o histórico do gráfico não
+    é reescrito.
+  </p>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+      <div class="space-y-2 mb-8">
+        {% for categoria, texto in mensagens %}
+          <div class="text-sm px-4 py-3 rounded-xl border
+                      {% if categoria == 'sucesso' %}bg-accent/10 text-accent border-accent/30
+                      {% else %}bg-red-500/10 text-red-400 border-red-500/30{% endif %}">
+            {{ texto }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% for produto in produtos %}
+    <div class="mb-8">
+      <p class="font-display font-bold text-ink mb-3">
+        {{ produto.name }}
+        <span class="text-xs font-normal text-ink-faint">({{ produto.brand }})</span>
+      </p>
+
+      <div class="bg-surface border border-border rounded-2xl overflow-hidden">
+        {% for preco in produto.prices %}
+          <form id="form-preco-{{ preco.id }}" method="post" action="{{ url_for('admin.editar_preco', price_id=preco.id) }}"></form>
+        {% endfor %}
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-border text-left text-ink-muted">
+                <th class="px-4 py-2.5 font-medium">Loja</th>
+                <th class="px-4 py-2.5 font-medium">Preço (R$)</th>
+                <th class="px-4 py-2.5 font-medium">Em estoque</th>
+                <th class="px-4 py-2.5 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              {% for preco in produto.prices %}
+                <tr>
+                  <td class="px-4 py-2.5 text-ink">
+                    {{ preco.store.name }}
+                    {% if preco.store.type == "fisica" %}
+                      <span class="text-xs text-ink-faint">({{ preco.store.city }})</span>
+                    {% endif %}
+                  </td>
+                  <td class="px-4 py-2.5">
+                    <input
+                      form="form-preco-{{ preco.id }}"
+                      type="text" name="price" value="{{ '%.2f'|format(preco.price)|replace('.', ',') }}"
+                      class="w-24 px-2 py-1.5 rounded-lg bg-elevated border border-border text-ink
+                             focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                  </td>
+                  <td class="px-4 py-2.5">
+                    <input
+                      form="form-preco-{{ preco.id }}"
+                      type="checkbox" name="in_stock" {% if preco.in_stock %}checked{% endif %}
+                      class="rounded border-border bg-elevated text-accent focus:ring-accent focus:ring-offset-0"
+                    >
+                  </td>
+                  <td class="px-4 py-2.5 text-right">
+                    <button form="form-preco-{{ preco.id }}" type="submit"
+                            class="text-xs font-bold bg-elevated hover:bg-accent hover:text-accent-ink text-ink px-3 py-1.5 rounded-lg transition-colors">
+                      Salvar
+                    </button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

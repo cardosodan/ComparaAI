@@ -24,11 +24,13 @@ def create_app(config_class: type = Config) -> Flask:
 
     from app import models  # garante que os modelos são conhecidos por db.create_all()/migrations, mesmo sem uso direto aqui
 
+    from app.routes.admin import admin_bp
     from app.routes.main import main_bp
     from app.routes.product import product_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(product_bp)
+    app.register_blueprint(admin_bp)
 
     @app.context_processor
     def injetar_globais_do_layout():

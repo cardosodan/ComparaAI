@@ -4,9 +4,9 @@ Comparador de preços de eletrodomésticos — Fase 1 (MVP): geladeiras, dados
 mockados, rodando localmente. Nome provisório (placeholder), ver seção
 "Nome do projeto" do brief original.
 
-**Status: Passo 6 concluído** (página de produto — specs, tabela
-comparativa, gráfico de histórico, similares). Próximo passo: ajustes
-finos de responsividade e microinterações.
+**Status: MVP completo (Passos 1-8 do brief original)** — busca com
+autocomplete, resultados com filtros, página de produto com comparação de
+preços e histórico, painel admin, microinterações e skeleton loading.
 
 ## Stack
 
@@ -205,6 +205,51 @@ próprio produto, e os dados do gráfico têm 31 pontos (30 dias + hoje), 1
 série por loja + a série de média com valores decrescentes (bate com a
 narrativa "preço caindo" do seed).
 
+## Microinterações e responsividade (Passo 7)
+
+- **Botões**: hover levanta 1px, active "pressiona" (scale 0.97) — regra
+  global em `input.css`, não repetida por componente. Cards de produto
+  mantêm o próprio hover (mais forte: translateY maior + sombra), sem
+  conflito com essa regra mais sutil.
+- **Skeleton loading nos resultados** (brief seção 7: "não deixar tela em
+  branco"): grid de cards cinza pulsando (`animate-pulse`) sobreposto
+  (overlay absoluto, não empurra o layout) enquanto o HTMX busca —
+  aparece/some via a classe `.htmx-request` que o próprio HTMX alterna
+  (`hx-indicator`), sem JS escrito à mão.
+- **Ícone de busca animado** (brief seção 7): lupa parada vira spinner
+  girando enquanto o autocomplete busca. Achado real ao implementar: usar
+  Alpine escutando `@htmx:beforeRequest` NÃO funciona — atributo HTML é
+  sempre lowercased pelo parser do navegador, então nunca bate com o nome
+  real do evento (`htmx:beforeRequest`, case-sensitive). Resolvido com CSS
+  puro por cima da classe `.htmx-request` (mesmo mecanismo do skeleton),
+  sem essa armadilha.
+- `prefers-reduced-motion` desliga toda transição/animação pra quem
+  configurou isso no SO/navegador.
+
+## Painel admin (Passo 8)
+
+`/admin/precos` — **sem autenticação de propósito** (brief seção 6.4 é
+explícito: "não precisa de auth ainda"), simula o fluxo que uma loja
+física parceira vai usar no futuro pra atualizar o próprio preço. Um
+`<form>` por oferta (produto+loja), preço + em-estoque editáveis, "Salvar"
+individual. Aceita preço digitado com vírgula OU ponto decimal
+(`2799,90` ou `2799.90`) — usuário de loja física não deveria precisar
+pensar em formato. Preço inválido mostra erro e não salva nada (testado).
+
+**Limitação conhecida, documentada de propósito**: sem login, esta rota
+fica acessível a qualquer um que souber a URL — aceitável só porque é
+Fase 1/dado mockado; autenticação de verdade é pré-requisito antes de
+qualquer dado real entrar aqui.
+
+Testado de ponta a ponta com curl + sessão de cookies (não só assumido):
+POST editando preço + desmarcando estoque → banco realmente atualizado
+(`2629.90` → `2599.50`, `in_stock` True → False, `last_updated` com
+timestamp novo); POST com preço inválido → flash de erro, banco
+**intocado** (confirmado consultando o registro depois). Achado e
+corrigido no caminho: `Model.query.get_or_404()` é API legada do
+SQLAlchemy 2.0 (gera warning) — trocado por `db.get_or_404(Model, id)`,
+o helper atual do Flask-SQLAlchemy 3.x.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
@@ -234,5 +279,5 @@ requirements.txt
 - [x] 4. Home page com busca
 - [x] 5. Rota e template de resultados de busca + filtros
 - [x] 6. Página de produto com tabela comparativa e gráfico de histórico
-- [ ] 7. Ajustes finos de responsividade e microinterações
-- [ ] 8. Painel admin simples de edição manual de preços
+- [x] 7. Ajustes finos de responsividade e microinterações
+- [x] 8. Painel admin simples de edição manual de preços
