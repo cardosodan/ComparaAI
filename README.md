@@ -465,11 +465,54 @@ sitemap público de cada marca:
   real quando presente, senão caem no mesmo simulado de qualquer loja sem
   dado real (decisão campo a campo, não tudo-ou-nada por loja).
 
-**Amazon, Magazine Luiza, Casas Bahia continuam sem dado real** (mesma
-razão de sempre — Magazine Luiza/Casas Bahia bloqueiam scraping
-ativamente, confirmado nos testes da seção acima; Amazon não foi tentada
-porque a busca (`/s?k=`) já resolve bem o caso de uso sem precisar achar
-produto exato).
+**Amazon não foi tentada** — a busca (`/s?k=`) já resolve bem o caso de
+uso sem precisar achar produto exato.
+
+## Electrolux, Casas Bahia e Magazine Luiza — cobertura completa (todos os produtos, todas as lojas)
+
+Usuário testou de novo e reportou 3 coisas: (1) Electrolux ainda só
+abria a homepage — causa real: eu só tinha testado `www.electrolux.com.br`
+(site institucional, sempre 503 em qualquer busca); a LOJA de verdade
+fica em `loja.electrolux.com.br` (achada via WebSearch), mesma
+plataforma VTEX de Bemol/Brastemp/Consul — mesmo modelo DFN41/IB7S já
+usado pra Bemol, com preço/estoque reais (ambos InStock). (2) Casas
+Bahia "ainda não mostra o produto específico, só abre o site deles" —
+faltava dado real pra Casas Bahia em quase todos os produtos (só tinha
+pro Electrolux DF44). (3) Pedido explícito: **"quero que todos os
+produtos estejam com todos os links de todas as marcas funcionando"**.
+
+**Casas Bahia e Magazine Luiza bloqueiam TODA requisição automatizada**
+(confirmado de novo — até uma URL de produto real achada via WebSearch
+dá 403 pros meus próprios pedidos, curl e WebFetch). Pra essas duas,
+sempre que possível, o fluxo virou: eu acho a URL real via WebSearch
+(nunca inventada — sempre um resultado indexado, título batendo com o
+produto certo) e **peço pro usuário abrir no próprio navegador** (não
+bloqueado) pra confirmar preço/estoque antes de eu gravar como dado
+real — mesmo processo usado com sucesso 2x seguidas (Electrolux DF44 na
+Casas Bahia e na Magazine Luiza, ambos confirmados "sem estoque").
+
+Pros outros 9 produtos, o usuário pediu pra eu mesmo achar os links
+("por que você só não pesquisa como Claude... acha os links e põe tudo
+certinho") em vez de confirmar um por um — mudança de processo
+explícita. Resultado: 15 URLs novas (Magazine Luiza + Casas Bahia pra
+Electrolux IF55, Brastemp BRM44/BRE80, Consul CRB39/CRM50, Samsung
+RT46/RF50, LG GC-L; só Magazine Luiza pra LG GC-B, Casas Bahia não
+retornou nenhum resultado pra esse modelo) achadas via WebSearch,
+sempre o MESMO modelo já usado nas outras lojas quando possível (ex:
+BRM44HK, CRB39AK, IB7S, RF22R7351SR — mesma consistência de sempre).
+**Só `url`, sem `preco`/`em_estoque`** — diferente da Casas Bahia/
+Magazine Luiza da Electrolux DF44 (que o usuário confirmou no
+navegador), essas 15 não foram verificadas por ninguém: uma troca
+deliberada de confiança por velocidade, sinalizada explicitamente nos
+comentários do código (`# Achadas via WebSearch`) pra não se confundir
+com dado de verdade confirmado.
+
+`popular_produtos_e_precos()` também mudou de "sorteia 2-4 das 4 lojas
+online" pra **sempre incluir as 4** (Amazon, Magazine Luiza, Casas
+Bahia, Loja Oficial da Marca) + 1 física — fazia sentido sortear quando
+só a Bemol tinha dado real (todo o resto igualmente simulado), mas
+sortear MENOS que todas agora esconderia dado bom atrás de sorte,
+contrariando o pedido de cobertura completa.
 
 ## Painel admin — busca e toggle (polish adicional)
 

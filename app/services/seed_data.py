@@ -126,6 +126,13 @@ PRODUTOS = [
                 "url": "https://www.casasbahia.com.br/geladeira-electrolux-dfn41-frost-free-com-painel-de-controle-externo-371l-branca/p/11688808",
                 "em_estoque": False,
             },
+            # Mesmo motivo/mesma verificação da Casas Bahia acima (Magazine
+            # Luiza também bloqueia toda requisição automatizada) — usuário
+            # abriu no navegador e confirmou: carrega certo, sem estoque.
+            "Magazine Luiza": {
+                "url": "https://www.magazineluiza.com.br/refrigerador-geladeira-electrolux-371-litros-2-portas-frost-free-dfn41/p/6498619/ed/ref2/",
+                "em_estoque": False,
+            },
         },
     },
     {
@@ -145,6 +152,17 @@ PRODUTOS = [
                 "preco": 4399.00, "em_estoque": True,
                 "imagem": "https://electrolux.vtexassets.com/arquivos/ids/288571/Refrigerator_IB7S_Front_Electrolux_Portuguese-1000x1000.raw.jpg?v=639046841437700000",
             },
+            # Achadas via WebSearch (Magazine Luiza/Casas Bahia bloqueiam toda
+            # requisição automatizada, mesmo pra uma URL de produto real —
+            # diferente da Bemol/Brastemp/Consul/Electrolux acima, não deu
+            # pra confirmar preço/estoque via JSON-LD). Só `url`, mesmo
+            # padrão de honestidade do Samsung/LG (ver comentário acima).
+            "Magazine Luiza": {
+                "url": "https://www.magazineluiza.com.br/refrigerador-de-02-portas-electrolux-frost-free-com-490-litros-efficient-com-autosense-inverse-inox-look-ib7s/p/jh536e5b79/ed/refr/",
+            },
+            "Casas Bahia": {
+                "url": "https://www.casasbahia.com.br/geladeira-electrolux-ib7s-frost-free-inverse-efficient-com-autosense-inox-look-490l/p/55065689",
+            },
         },
     },
     {
@@ -163,6 +181,14 @@ PRODUTOS = [
                 "url": "https://www.brastemp.com.br/geladeira-brastemp-frost-free-375-litros-brm44hb/p",
                 "preco": 3089.00, "em_estoque": False,
                 "imagem": "https://brastemp.vtexassets.com/arquivos/ids/285442/01_Brastemp_Geladeira_BRM44HB_Imagem_Frontal_Fechada.jpg?v=639120439093400000",
+            },
+            # Achadas via WebSearch, mesmo motivo/mesma limitação do
+            # Electrolux IF55 acima (só `url`, sem preço/estoque confirmados).
+            "Magazine Luiza": {
+                "url": "https://www.magazineluiza.com.br/geladeira-brastemp-frost-free-duplex-375l-inox-com-compartimento-extrafrio-fresh-zone-brm44hk/p/013085700/ed/refr/",
+            },
+            "Casas Bahia": {
+                "url": "https://www.casasbahia.com.br/geladeira-brastemp-brm44hk-frost-free-duplex-com-compartimento-extrafrio-e-fresh-zone-inox-375l/p/12731690",
             },
         },
     },
@@ -184,6 +210,13 @@ PRODUTOS = [
                 "preco": 6539.00, "em_estoque": False,
                 "imagem": "https://brastemp.vtexassets.com/arquivos/ids/270753/Brastemp_Geladeira_BRE85AK_Imagem_Frontal_fechada_jpg_1.jpg?v=638996724145800000",
             },
+            # Achadas via WebSearch (só `url`, mesma limitação de sempre).
+            "Magazine Luiza": {
+                "url": "https://www.magazineluiza.com.br/geladeira-brastemp-frost-free-inverse-588-litros-cor-inox-com-smart-bar-bre85ak/p/hjc6fd5g2a/ed/rinv/",
+            },
+            "Casas Bahia": {
+                "url": "https://www.casasbahia.com.br/geladeira-brastemp-frost-free-inverse-588-litros-cor-inox-com-smart-bar-bre85ak/p/1546151993",
+            },
         },
     },
     {
@@ -203,6 +236,13 @@ PRODUTOS = [
                 "preco": 2609.00, "em_estoque": False,
                 "imagem": "https://consul.vtexassets.com/arquivos/ids/273738/01_Consul_Geladeira_CRB39AK_Imagem_Frontal_Frontal_png_3.jpg?v=639014052388430000",
             },
+            # Achadas via WebSearch (só `url`, mesma limitação de sempre).
+            "Magazine Luiza": {
+                "url": "https://www.magazineluiza.com.br/geladeira-consul-frost-free-342-litros-cor-inox-com-gavetao-hortifruti-crb39ak/p/837872400/ed/ref1/",
+            },
+            "Casas Bahia": {
+                "url": "https://www.casasbahia.com.br/eletrodomesticos/geladeiraerefrigerador/1porta/refrigerador-consul-frost-free-facilite-crb39ak-1-porta-evox-342-litros-10153510.html",
+            },
         },
     },
     {
@@ -221,6 +261,13 @@ PRODUTOS = [
                 "url": "https://www.consul.com.br/geladeira-consul-frost-free-duplex-com-espaco-flex-e-controle-interno-de-temperatura-410-litros-cor-branca-crm50fb/p",
                 "preco": 3499.00, "em_estoque": False,
                 "imagem": "https://consul.vtexassets.com/arquivos/ids/273875/01_Consul_Geladeira_CRM50FB_Imagem_Frontal_3--2-.jpg?v=639014100338000000",
+            },
+            # Achadas via WebSearch (só `url`, mesma limitação de sempre).
+            "Magazine Luiza": {
+                "url": "https://www.magazineluiza.com.br/geladeira-consul-crm50fb-frost-free-duplex-410l/p/fafhck6b5e/ed/ref2/",
+            },
+            "Casas Bahia": {
+                "url": "https://www.casasbahia.com.br/p/55065204",
             },
         },
     },
@@ -243,6 +290,15 @@ PRODUTOS = [
             "Loja Oficial da Marca": {
                 "url": "https://www.samsung.com/br/refrigerators/bottom-mount-freezer/rb6000d-462l-refined-inox-rb50dg6020s9az/",
             },
+            # RT46K6A4KS9 (linha "RT6000K") — bate ainda melhor com o nosso
+            # model "RT46" (prefixo idêntico) que o RB50DG6020S9AZ usado no
+            # site da Samsung acima. Achadas via WebSearch, só `url`.
+            "Magazine Luiza": {
+                "url": "https://www.magazineluiza.com.br/geladeira-samsung-inverter-rt6000k-460-litros-inox-look-bivolt-rt46k6a4ks9-fz/p/ac9cc6797h/ed/refr/",
+            },
+            "Casas Bahia": {
+                "url": "https://m.casasbahia.com.br/geladeira-samsung-inverter-rt6000k-460-litros-inox-look-bivolt-rt46k6a4ks9-fz-1509474809.html?IdSku=1509474809",
+            },
         },
     },
     {
@@ -263,6 +319,13 @@ PRODUTOS = [
                 "url": "https://www.samsung.com/br/refrigerators/french-door/501l-real-sts-rf22r7351sr-az/",
                 "imagem": "https://stg-images.samsung.com/is/image/samsung/br-ref-fdsr-rf22r7351sraz-rf22r7351sr-az-frontsilver-thumb-185294248",
             },
+            # Achadas via WebSearch, mesmo modelo RF22R7351SR (só `url`).
+            "Magazine Luiza": {
+                "url": "https://www.magazineluiza.com.br/geladeira-inverter-frost-free-samsung-french-door-smartthings-wi-fi-twin-cooling-plus-com-food-showcase-e-gaveta-flexzone-rf22r7351sr-501l-inox/p/dkdjgegbh4/ed/grfd/",
+            },
+            "Casas Bahia": {
+                "url": "https://www.casasbahia.com.br/p/55007344",
+            },
         },
     },
     {
@@ -280,6 +343,13 @@ PRODUTOS = [
                 "url": "https://www.lg.com/br/geladeiras/geladeiras-duplex/gn-b392pqwb/",
                 "imagem": "https://www.lg.com/content/dam/channel/wcms/br/images/geladeiras/gn-b392pqwb/gallery/Basic-450.jpg",
             },
+            # Achada via WebSearch, modelo próximo (GN-B392PLM, mesma família
+            # 392/395L) — Casas Bahia não retornou nenhum resultado pra LG
+            # duplex 395L (provavelmente não carrega esse modelo específico,
+            # mesmo tipo de lacuna já documentado pra Bemol/LG acima).
+            "Magazine Luiza": {
+                "url": "https://www.magazineluiza.com.br/geladeira-lg-frost-free-inverter-395l-duplex-cor-inox-look-gn-b392plm-220v/p/egb27f8ek4/ed/ref2/",
+            },
         },
     },
     {
@@ -294,6 +364,13 @@ PRODUTOS = [
             "Loja Oficial da Marca": {
                 "url": "https://www.lg.com/br/geladeiras/lg-GC-L247SLUV-geladeira-side-by-side-601-litros",
                 "imagem": "https://www.lg.com/content/dam/channel/wcms/br/images/geladeiras/gc-l247sluv_apzfsbs_essp_br_c/450_basic.jpg",
+            },
+            # Mesmo modelo GC-L247SLUV, achadas via WebSearch (só `url`).
+            "Magazine Luiza": {
+                "url": "https://www.magazineluiza.com.br/geladeira-refrigerador-smart-lg-side-by-side-inverter-601l-com-lg-thinq-gc-l247sluv-inox/p/224801700/ed/grsb/",
+            },
+            "Casas Bahia": {
+                "url": "https://www.casasbahia.com.br/refrigerador-smart-lg-side-by-side-601-litros-inox-220v-gc-l247sluv/p/1518119779",
             },
         },
     },
@@ -353,22 +430,19 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
         db.session.add(produto)
         produtos.append(produto)
 
-        # 3 a 5 lojas por produto, sorteadas — sempre incluindo pelo menos
-        # 1 loja física (Bemol/Eletro Norte), pra todo produto ter opção
-        # online E física (o diferencial do produto, ver brief seção 1).
-        # QUALQUER loja online com dado real pra esse produto (Loja Oficial
-        # da Marca, Casas Bahia, etc.) entra GARANTIDA (não sorteada) —
-        # senão o dado real podia nem aparecer se o sorteio escolhesse
-        # outra loja no lugar. Bemol tem a mesma garantia do lado físico.
+        # TODAS as lojas online (Amazon, Magazine Luiza, Casas Bahia, Loja
+        # Oficial da Marca) + 1 loja física, pra todo produto comparar o
+        # máximo de ofertas possível. Antes só sorteava 2-4 das 4 online —
+        # fazia sentido quando só a Bemol tinha dado real (o resto era tudo
+        # simulado, nível de detalhe igual entre elas), mas agora que a
+        # maioria das lojas tem alguma URL real por produto, sortear menos
+        # que todas escondia dado bom atrás de sorte (pedido do usuário:
+        # "quero que todos os produtos estejam com todos os links de todas
+        # as marcas funcionando").
         lojas_online = [l for l in lojas if l.type == Store.TIPO_ONLINE]
         lojas_fisicas = [l for l in lojas if l.type == Store.TIPO_FISICA]
 
-        online_com_dado_real = [l for l in lojas_online if l.name in lojas_reais]
-        candidatas_online = [l for l in lojas_online if l not in online_com_dado_real]
-        n_online = random.randint(2, min(4, len(lojas_online)))
-        n_sorteadas = max(0, n_online - len(online_com_dado_real))
-        selecionadas = random.sample(candidatas_online, min(n_sorteadas, len(candidatas_online)))
-        selecionadas.extend(online_com_dado_real)
+        selecionadas = list(lojas_online)
 
         loja_fisica_escolhida = loja_bemol if ("Bemol" in lojas_reais and loja_bemol) else random.choice(lojas_fisicas)
         selecionadas.append(loja_fisica_escolhida)
