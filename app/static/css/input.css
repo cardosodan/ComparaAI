@@ -35,3 +35,46 @@ body {
   background-color: var(--color-base);
   color: var(--color-ink);
 }
+
+/* --- Microinterações (Passo 7) ------------------------------------------ */
+/* Todo botão do site levanta 1px ao passar o mouse e "pressiona"
+   (encolhe) ao clicar — feedback tátil consistente, sem precisar repetir
+   isso em cada botão individualmente. Cards de produto já tinham o
+   próprio hover (translateY maior + sombra, ver product_card.html) —
+   esse aqui é mais sutil de propósito, pra não competir com aquele. */
+button, .btn-like {
+  transition: transform 120ms ease, filter 150ms ease, background-color 150ms ease, border-color 150ms ease;
+}
+button:hover:not(:disabled), .btn-like:hover {
+  transform: translateY(-1px);
+}
+button:active:not(:disabled), .btn-like:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* HTMX injeta esse CSS sozinho por padrão, mas deixar explícito aqui é
+   mais robusto (não depende de um comportamento implícito da lib) —
+   controla o fade do skeleton de carregamento (busca/filtros) e do
+   spinner do campo de busca. */
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+.htmx-request.htmx-indicator,
+.htmx-request .htmx-indicator {
+  opacity: 1;
+}
+
+/* Ícone animado do campo de busca (home.html): lupa parada por padrão,
+   spinner por cima dela só enquanto #wrapper-icone-busca está com
+   .htmx-request (adicionada pelo próprio HTMX, ver hx-indicator). */
+.busca-icone-carregando { display: none; }
+#wrapper-icone-busca.htmx-request .busca-icone-parado { display: none; }
+#wrapper-icone-busca.htmx-request .busca-icone-carregando { display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

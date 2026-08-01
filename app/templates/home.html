@@ -15,7 +15,18 @@
 
   <div x-data="{ aberto: false }" class="relative mt-8 max-w-xl mx-auto">
     <form action="{{ url_for('main.busca') }}" method="get" class="relative">
-      <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-faint"></i>
+      <!-- Ícone de busca "animado" (brief seção 7): troca pra um spinner
+           girando (animate-spin) enquanto o HTMX busca as sugestões, e
+           volta pra lupa parada assim que a resposta chega. Duas <i> +
+           CSS puro (ver .busca-icone-* em input.css) em vez de Alpine
+           escutando o evento htmx:beforeRequest — atributo HTML é sempre
+           lowercased pelo parser, então @htmx:beforeRequest nunca bateria
+           com o nome real do evento (case-sensitive); a classe
+           .htmx-request que o próprio HTMX alterna não tem esse problema. -->
+      <div id="wrapper-icone-busca" class="absolute left-4 top-1/2 -translate-y-1/2">
+        <i data-lucide="search" class="busca-icone-parado w-5 h-5 text-ink-faint"></i>
+        <i data-lucide="loader-2" class="busca-icone-carregando w-5 h-5 text-accent animate-spin"></i>
+      </div>
       <input
         type="text"
         name="q"
@@ -26,6 +37,7 @@
         hx-get="{{ url_for('main.busca_sugestoes') }}"
         hx-trigger="keyup changed delay:300ms"
         hx-target="#sugestoes-busca"
+        hx-indicator="#wrapper-icone-busca"
         @keyup="aberto = $event.target.value.trim().length >= 2"
         @click.outside="aberto = false"
       >
