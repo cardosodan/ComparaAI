@@ -1,0 +1,60 @@
+<header x-data="{ menuAberto: false }" class="sticky top-0 z-50 bg-surface/95 backdrop-blur border-b border-border">
+  <nav class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="{{ url_for('main.index') }}" class="font-display text-xl font-bold text-ink shrink-0">
+      Compara<span class="text-accent">AI</span>
+    </a>
+
+    <!-- Categorias — desktop -->
+    <ul class="hidden md:flex items-center gap-6">
+      {% for categoria in categorias_nav %}
+        <li>
+          {% if categoria.active %}
+            <a href="#" class="text-sm font-medium text-ink hover:text-accent transition-colors">
+              {{ categoria.name }}
+            </a>
+          {% else %}
+            <span class="text-sm text-ink-faint cursor-default" title="Em breve">
+              {{ categoria.name }} <span class="text-[10px] align-super">em breve</span>
+            </span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+
+    <!-- Botão hamburguer — mobile -->
+    <button
+      @click="menuAberto = !menuAberto"
+      class="md:hidden p-2 -mr-2 text-ink-muted hover:text-ink"
+      :aria-expanded="menuAberto"
+      aria-label="Abrir menu"
+    >
+      <svg x-show="!menuAberto" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+      <svg x-show="menuAberto" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </nav>
+
+  <!-- Categorias — mobile (some/aparece) -->
+  <ul
+    x-show="menuAberto"
+    x-cloak
+    x-transition
+    @click.outside="menuAberto = false"
+    class="md:hidden border-t border-border bg-surface px-4 py-3 space-y-1"
+  >
+    {% for categoria in categorias_nav %}
+      <li>
+        {% if categoria.active %}
+          <a href="#" class="block py-2 text-ink font-medium">{{ categoria.name }}</a>
+        {% else %}
+          <span class="block py-2 text-ink-faint">
+            {{ categoria.name }} <span class="text-[10px] align-super">em breve</span>
+          </span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+</header>

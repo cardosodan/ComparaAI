@@ -4,8 +4,8 @@ Comparador de preços de eletrodomésticos — Fase 1 (MVP): geladeiras, dados
 mockados, rodando localmente. Nome provisório (placeholder), ver seção
 "Nome do projeto" do brief original.
 
-**Status: Passo 2 concluído** (modelos de banco + seed de dados mockados).
-Próximo passo: layout base (`base.html`).
+**Status: Passo 3 concluído** (layout base — navbar, footer, cores/tipografia).
+Próximo passo: home page com busca.
 
 ## Stack
 
@@ -17,7 +17,9 @@ Próximo passo: layout base (`base.html`).
   propósito, pra manter tudo num codebase Python só (mesma justificativa do
   brief original: fácil de deployar numa VPS sem gerenciar frontend
   separado).
-- Interatividade (a partir do Passo 4+): HTMX + Alpine.js, via CDN.
+- Interatividade: HTMX + Alpine.js, via CDN (carregados em `base.html` desde
+  o Passo 3 — menu mobile do navbar já usa Alpine; busca dinâmica com HTMX
+  vem no Passo 4/5).
 
 ## Como rodar
 
@@ -89,6 +91,23 @@ a um):
   produto+loja, caminho aleatório suave com leve tendência de queda —
   bom material pro gráfico do Passo 6
 
+## Layout base (navbar, footer, tipografia)
+
+`app/templates/base.html` é o shell de toda página (título/meta description
+por `{% block %}`, pensando em SEO — brief seção 8). Inclui
+`components/navbar.html` e `components/footer.html`, os dois **data-driven**
+(consultam `Category` de verdade via um `context_processor` em
+`app/__init__.py` — `categorias_nav` — em vez de ter "Geladeiras/Fogões/..."
+hardcoded nos templates; categoria nova no banco aparece sozinha).
+
+- Navbar: sticky, categoria ativa (Geladeiras) clicável, as "em breve" com
+  selo e sem link. Mobile: menu hamburguer com Alpine.js (`x-data`/`x-show`,
+  sem nenhum JS próprio escrito à mão).
+- Footer: marca, lista de categorias, texto "sobre", ano dinâmico.
+- `_setup_check.html` (temporário) agora estende `base.html` e demonstra a
+  escala de cor/tipografia (cartão de produto, badges, hierarquia de texto)
+  — some no Passo 4 quando a home de verdade entrar.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
@@ -114,7 +133,7 @@ requirements.txt
 
 - [x] 1. Setup do projeto Flask + estrutura de pastas + config do Tailwind
 - [x] 2. Modelos de banco (`models.py`) + script de seed com dados mockados
-- [ ] 3. Layout base (`base.html`) com navbar, footer, sistema de cores/tipografia
+- [x] 3. Layout base (`base.html`) com navbar, footer, sistema de cores/tipografia
 - [ ] 4. Home page com busca
 - [ ] 5. Rota e template de resultados de busca + filtros
 - [ ] 6. Página de produto com tabela comparativa e gráfico de histórico

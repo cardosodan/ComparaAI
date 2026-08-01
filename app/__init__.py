@@ -28,4 +28,16 @@ def create_app(config_class: type = Config) -> Flask:
 
     app.register_blueprint(main_bp)
 
+    @app.context_processor
+    def injetar_globais_do_layout():
+        """Dados usados pelo navbar/footer em TODA página (components/navbar.html,
+        components/footer.html) — centralizado aqui pra não repetir a mesma
+        query em cada rota que renderiza um template."""
+        from datetime import datetime
+
+        from app.models import Category
+
+        categorias = Category.query.order_by(Category.active.desc(), Category.name).all()
+        return {"categorias_nav": categorias, "ano_atual": datetime.utcnow().year}
+
     return app
