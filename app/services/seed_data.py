@@ -115,6 +115,17 @@ PRODUTOS = [
                 "preco": 3469.00, "em_estoque": True,
                 "imagem": "https://electrolux.vtexassets.com/arquivos/ids/214052/Refrigerador_DFN41_Frontal_1000x1000_principal.jpg?v=638804364273430000",
             },
+            # URL achada via WebSearch (Casas Bahia bloqueia toda requisição
+            # automatizada, mesmo pra essa página específica — não deu pra
+            # confirmar sozinho). Usuário abriu no próprio navegador e
+            # confirmou: carrega de verdade, "não tem em estoque" e SEM
+            # nenhum preço visível na página (por isso sem campo `preco`
+            # aqui — nunca inventar um valor que a própria página não
+            # mostra).
+            "Casas Bahia": {
+                "url": "https://www.casasbahia.com.br/geladeira-electrolux-dfn41-frost-free-com-painel-de-controle-externo-371l-branca/p/11688808",
+                "em_estoque": False,
+            },
         },
     },
     {
@@ -320,7 +331,6 @@ def popular_lojas() -> list[Store]:
 
 def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]) -> list[Product]:
     loja_bemol = next((l for l in lojas if l.name == "Bemol"), None)
-    loja_oficial = next((l for l in lojas if l.name == "Loja Oficial da Marca"), None)
 
     produtos = []
     for dados in PRODUTOS:
@@ -346,19 +356,19 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
         # 3 a 5 lojas por produto, sorteadas — sempre incluindo pelo menos
         # 1 loja física (Bemol/Eletro Norte), pra todo produto ter opção
         # online E física (o diferencial do produto, ver brief seção 1).
-        # Lojas com dado REAL pra esse produto (Bemol e/ou Loja Oficial da
-        # Marca) entram GARANTIDAS (não sorteadas) — senão o dado real
-        # podia nem aparecer se o sorteio escolhesse outra loja no lugar.
+        # QUALQUER loja online com dado real pra esse produto (Loja Oficial
+        # da Marca, Casas Bahia, etc.) entra GARANTIDA (não sorteada) —
+        # senão o dado real podia nem aparecer se o sorteio escolhesse
+        # outra loja no lugar. Bemol tem a mesma garantia do lado físico.
         lojas_online = [l for l in lojas if l.type == Store.TIPO_ONLINE]
         lojas_fisicas = [l for l in lojas if l.type == Store.TIPO_FISICA]
 
-        oficial_tem_dado_real = "Loja Oficial da Marca" in lojas_reais and loja_oficial is not None
-        candidatas_online = [l for l in lojas_online if not (oficial_tem_dado_real and l is loja_oficial)]
+        online_com_dado_real = [l for l in lojas_online if l.name in lojas_reais]
+        candidatas_online = [l for l in lojas_online if l not in online_com_dado_real]
         n_online = random.randint(2, min(4, len(lojas_online)))
-        n_sorteadas = max(0, n_online - (1 if oficial_tem_dado_real else 0))
+        n_sorteadas = max(0, n_online - len(online_com_dado_real))
         selecionadas = random.sample(candidatas_online, min(n_sorteadas, len(candidatas_online)))
-        if oficial_tem_dado_real:
-            selecionadas.append(loja_oficial)
+        selecionadas.extend(online_com_dado_real)
 
         loja_fisica_escolhida = loja_bemol if ("Bemol" in lojas_reais and loja_bemol) else random.choice(lojas_fisicas)
         selecionadas.append(loja_fisica_escolhida)
@@ -367,20 +377,30 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
             dado_real = lojas_reais.get(loja.name)
             url = dado_real["url"] if dado_real else None
 
-            # Preço/estoque só vêm do dado real quando ele os TEM de verdade
-            # (Bemol/Brastemp/Consul expõem os dois via JSON-LD; Samsung/LG
-            # só têm URL/imagem confirmadas — preço/estoque delas são
-            # carregados por JavaScript, invisíveis pra scraping estático,
-            # então continuam simulados como qualquer loja sem dado real).
+            # Preço e estoque são decididos CAMPO A CAMPO, não tudo-ou-nada
+            # por loja: algumas lojas reais têm os dois confirmados
+            # (Bemol/Brastemp/Consul/Electrolux, via JSON-LD), outras só
+            # estoque sem preço (Casas Bahia — página confirmada pelo
+            # usuário no navegador, "não tem em estoque" mas sem nenhum
+            # preço visível pra copiar), outras nenhum dos dois (Samsung/LG
+            # — preço/estoque carregados por JavaScript, invisíveis pra
+            # scraping estático). O que não tem dado real cai no mesmo
+            # simulado de qualquer loja sem informação nenhuma.
+            usou_dado_real = False
             if dado_real and "preco" in dado_real:
                 preco = Decimal(str(dado_real["preco"]))
-                em_estoque = dado_real["em_estoque"]
-                atualizado_ha_horas = random.randint(1, 6)  # dado "fresco", acabou de ser buscado de verdade
+                usou_dado_real = True
             else:
                 variacao = random.uniform(-0.08, 0.12)  # loja mais barata até mais cara que a base
                 preco = _preco_com_variacao(dados["preco_base"], variacao)
+
+            if dado_real and "em_estoque" in dado_real:
+                em_estoque = dado_real["em_estoque"]
+                usou_dado_real = True
+            else:
                 em_estoque = random.random() > 0.08  # ~92% em estoque, resto "esgotado" (realismo)
-                atualizado_ha_horas = random.randint(1, 30)
+
+            atualizado_ha_horas = random.randint(1, 6) if usou_dado_real else random.randint(1, 30)
 
             db.session.add(Price(
                 product=produto,
