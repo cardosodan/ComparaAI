@@ -10,8 +10,9 @@ resultados com filtros, página de produto com comparação de preços e
 histórico, painel admin (com busca e toggle de estoque), microinterações e
 skeleton loading, pipeline real de atualização automática de preço
 (JSON-LD + Groq como fallback, testado contra e-commerce real), clique no
-produto redireciona pra melhor oferta de verdade, e **8 dos 10 produtos já
-têm foto real** (achada no catálogo público da Bemol).
+produto vai pra nossa página de comparação (com ofertas esgotadas
+acinzentadas), e **8 dos 10 produtos já têm foto real** (achada no
+catálogo público da Bemol).
 
 ## Stack
 
@@ -337,18 +338,29 @@ escalar isso de verdade continua sendo um programa de afiliados oficial
 lojas que não tiverem isso disponível (ex: Bemol/lojas físicas locais
 com site próprio).
 
-## Clique no produto redireciona pra melhor oferta + fotos reais
+## Clique no produto vai pra nossa página de comparação + fotos reais
 
 Dois pedidos do usuário, resolvidos juntos porque a mesma busca por
 produtos reais (ver seção acima) resolve os dois:
 
-- **`components/product_card.html`**: o clique principal do card agora vai
+- **`components/product_card.html`**: o clique no card inteiro vai pra
+  nossa página interna (`product.detalhe`), com a tabela comparando o
+  preço do mesmo modelo em várias lojas + gráfico de histórico.
+  **Testado e depois revertido**: cheguei a mandar o clique principal
   DIRETO pra `produto.melhor_oferta.url` (a loja com o menor preço,
-  `target="_blank"`) — não mais pra nossa página interna. A página de
-  comparação (Passo 6, com a tabela de todas as ofertas + gráfico)
-  continua existindo, só que como link secundário discreto ("Comparar N
-  ofertas") embaixo do card, pra não perder o valor central do site
-  (comparar preços) mesmo mandando o clique principal pra fora.
+  `target="_blank"`), a pedido do usuário — mas só a oferta **Bemol** de
+  cada produto tem URL real; as outras 5 lojas (Amazon, Magazine Luiza,
+  Casas Bahia, Loja Oficial, Eletro Norte) usam URL sintética
+  (`{site_da_loja}/produto/{slug}`, nunca existiu de verdade), então
+  clicar em qualquer card cuja melhor oferta fosse uma dessas batia numa
+  página "não encontrada" real no site de destino. O usuário reportou
+  "todos os links... aparecem não encontrado" e pediu pra reverter — o
+  clique volta a ir pra nossa página, e é lá, na tabela por loja
+  (Passo 6), que cada oferta individual tem seu próprio link "Ver oferta"
+  pra fora (mesmo problema de URL sintética ali, mas isolado por loja em
+  vez de quebrar a navegação principal do site inteiro) — ofertas
+  esgotadas (`in_stock=False`) ficam com a linha inteira acinzentada
+  (`opacity-50`) e mostram "Esgotado" no lugar do botão.
 - **Fotos reais pra 8 dos 10 produtos**: usando a mesma técnica de achar
   produtos reais na Bemol (sitemap público + JSON-LD, ver seção acima),
   achei o equivalente mais próximo (capacidade/linha) pra Electrolux,
