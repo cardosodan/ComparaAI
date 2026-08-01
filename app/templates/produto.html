@@ -74,7 +74,7 @@
           </thead>
           <tbody class="divide-y divide-border">
             {% for oferta in ofertas %}
-              <tr class="{% if not oferta.em_estoque %}opacity-50{% elif oferta.eh_melhor_oferta %}bg-accent/5{% endif %}">
+              <tr class="{% if oferta.eh_melhor_oferta %}bg-accent/5{% endif %}">
                 <td class="px-5 py-4">
                   <div class="flex items-center gap-2.5">
                     <i data-lucide="{{ 'store' if oferta.loja.type == 'fisica' else 'shopping-cart' }}" class="w-4 h-4 text-ink-faint shrink-0"></i>
@@ -98,7 +98,9 @@
                 <td class="px-5 py-4 text-ink-faint hidden sm:table-cell whitespace-nowrap">{{ oferta.atualizado_ha }}</td>
                 <td class="px-5 py-4 text-right">
                   {% if not oferta.em_estoque %}
-                    <span class="text-xs text-ink-faint whitespace-nowrap">Esgotado</span>
+                    <span class="inline-block bg-red-600 text-white text-[11px] font-bold uppercase tracking-wide px-2.5 py-1.5 rounded-lg shadow-md shadow-red-950/50 ring-1 ring-red-400/40 whitespace-nowrap">
+                      Esgotado
+                    </span>
                   {% elif oferta.url %}
                     <a href="{{ oferta.url }}" target="_blank" rel="noopener nofollow"
                        class="inline-block bg-elevated hover:bg-accent hover:text-accent-ink text-ink text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap">
