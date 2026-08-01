@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% from "components/product_card.html" import cartao_produto %}
+
+{% block title %}{{ produto.name }} — ComparaAI{% endblock %}
+{% block meta_description %}{{ produto.name }}: compare o preço em {{ ofertas|length }} loja{{ "s" if ofertas|length != 1 else "" }} (online e física) e veja o histórico de preço dos últimos 30 dias.{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+
+  <a href="{{ url_for('main.busca', q='geladeira') }}" class="text-sm text-ink-muted hover:text-accent transition-colors">
+    ← Voltar pros resultados
+  </a>
+
+  <!-- Galeria + info principal -->
+  <div class="grid md:grid-cols-2 gap-8 items-start mt-4">
+    <div class="aspect-square bg-elevated border border-border rounded-2xl flex items-center justify-center">
+      <!-- Sem foto real de produto ainda (Fase 1) -->
+      <i data-lucide="refrigerator" class="w-32 h-32 text-ink-faint"></i>
+    </div>
+
+    <div>
+      <p class="text-sm text-ink-muted uppercase tracking-wide">{{ produto.brand }}</p>
+      <h1 class="font-display text-3xl font-bold text-ink mt-1">{{ produto.name }}</h1>
+
+      {% if produto.melhor_oferta %}
+        <span class="inline-block mt-3 text-xs font-bold uppercase tracking-wide bg-accent text-accent-ink px-2.5 py-1 rounded-full">
+          Melhor preço: {{ produto.melhor_oferta.store.name }}
+        </span>
+      {% endif %}
+
+      <p class="mt-4 text-sm text-ink-muted">A partir de</p>
+      <p class="font-display text-4xl font-bold text-ink">R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}</p>
+      {% if produto.price_max and produto.price_max != produto.price_min %}
+        <p class="text-sm text-ink-faint">até R$ {{ "%.2f"|format(produto.price_max)|replace(".", ",") }} em outras lojas</p>
+      {% endif %}
+
+      <a href="#comparar-precos" class="inline-block mt-5 bg-accent hover:bg-accent-hover text-accent-ink font-display font-bold px-5 py-3 rounded-xl transition-colors">
+        Comparar {{ ofertas|length }} oferta{{ "s" if ofertas|length != 1 else "" }}
+      </a>
+    </div>
+  </div>
+
+  <!-- Especificações -->
+  <div class="mt-14">
+    <h2 class="font-display text-xl font-bold text-ink mb-4">Especificações</h2>
+    <dl class="bg-surface border border-border rounded-2xl divide-y divide-border overflow-hidden">
+      {% for label, valor in especificacoes %}
+        <div class="flex justify-between gap-4 px-5 py-3 text-sm">
+          <dt class="text-ink-muted">{{ label }}</dt>
+          <dd class="text-ink font-medium text-right">{{ valor }}</dd>
+        </div>
+      {% endfor %}
+    </dl>
+  </div>
+
+  <!-- Tabela comparativa de preços -->
+  <div id="comparar-precos" class="mt-14 scroll-mt-24">
+    <h2 class="font-display text-xl font-bold text-ink mb-4">Comparar preços</h2>
+    <div class="bg-surface border border-border rounded-2xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border text-left text-ink-muted">
+              <th class="px-5 py-3 font-medium">Loja</th>
+              <th class="px-5 py-3 font-medium">Preço</th>
+              <th class="px-5 py-3 font-medium hidden sm:table-cell">Frete</th>
+              <th class="px-5 py-3 font-medium hidden sm:table-cell">Atualizado</th>
+              <th class="px-5 py-3 font-medium"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {% for oferta in ofertas %}
+              <tr class="{% if not oferta.em_estoque %}opacity-50{% elif oferta.eh_melhor_oferta %}bg-accent/5{% endif %}">
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-2.5">
+                    <i data-lucide="{{ 'store' if oferta.loja.type == 'fisica' else 'shopping-cart' }}" class="w-4 h-4 text-ink-faint shrink-0"></i>
+                    <div>
+                      <p class="text-ink font-medium">
+                        {{ oferta.loja.name }}
+                        {% if oferta.eh_melhor_oferta %}
+                          <span class="ml-1 text-[10px] font-bold uppercase bg-accent text-accent-ink px-1.5 py-0.5 rounded-full align-middle">Melhor</span>
+                        {% endif %}
+                      </p>
+                      {% if oferta.loja.type == "fisica" %}
+                        <p class="text-xs text-ink-faint">Loja física — {{ oferta.loja.city }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-4 font-display font-bold text-ink whitespace-nowrap">
+                  R$ {{ "%.2f"|format(oferta.preco)|replace(".", ",") }}
+                </td>
+                <td class="px-5 py-4 text-ink-muted hidden sm:table-cell">{{ oferta.frete }}</td>
+                <td class="px-5 py-4 text-ink-faint hidden sm:table-cell whitespace-nowrap">{{ oferta.atualizado_ha }}</td>
+                <td class="px-5 py-4 text-right">
+                  {% if oferta.em_estoque %}
+                    <a href="{{ oferta.url or '#' }}" target="_blank" rel="noopener nofollow"
+                       class="inline-block bg-elevated hover:bg-accent hover:text-accent-ink text-ink text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap">
+                      Ver oferta
+                    </a>
+                  {% else %}
+                    <span class="text-xs text-ink-faint whitespace-nowrap">Esgotado</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Histórico de preço -->
+  <div class="mt-14">
+    <h2 class="font-display text-xl font-bold text-ink mb-4">Histórico de preço (30 dias)</h2>
+    <div class="bg-surface border border-border rounded-2xl p-5">
+      {% if historico.labels %}
+        <canvas id="grafico-historico" height="90"></canvas>
+        <p class="text-xs text-ink-faint mt-3">
+          Clique numa loja na legenda pra esconder/mostrar a linha dela — inclusive pra ver só a "Média".
+        </p>
+      {% else %}
+        <p class="text-sm text-ink-muted">Sem histórico disponível ainda pra este produto.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Produtos similares -->
+  {% if similares %}
+    <div class="mt-14">
+      <h2 class="font-display text-xl font-bold text-ink mb-4">Produtos similares</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {% for p in similares %}
+          {{ cartao_produto(p) }}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if historico.labels %}
+<script src="https://unpkg.com/chart.js@4/dist/chart.umd.js"></script>
+<script>
+  (function () {
+    const dados = {{ historico | tojson }};
+    const raiz = getComputedStyle(document.documentElement);
+    const corTexto = raiz.getPropertyValue("--color-ink").trim();
+    const corMuted = raiz.getPropertyValue("--color-ink-muted").trim();
+    const corBorda = raiz.getPropertyValue("--color-border").trim();
+    const corAccent = raiz.getPropertyValue("--color-accent").trim();
+
+    // Paleta só pra diferenciar as linhas de loja entre si — a legenda já
+    // identifica qual é qual, então não precisa ter significado de marca.
+    const coresLojas = ["#4E7DEB", "#E8895D", "#E85D9B", "#5BC0EB", "#9D7FEA", "#4ECDC4"];
+
+    const datasets = Object.entries(dados.series_por_loja).map(([loja, valores], i) => ({
+      label: loja,
+      data: valores,
+      borderColor: coresLojas[i % coresLojas.length],
+      backgroundColor: "transparent",
+      tension: 0.3,
+      spanGaps: true,
+      borderWidth: 1.5,
+      pointRadius: 0,
+    }));
+
+    datasets.push({
+      label: "Média",
+      data: dados.serie_media,
+      borderColor: corAccent,
+      backgroundColor: "transparent",
+      borderWidth: 3,
+      tension: 0.3,
+      spanGaps: true,
+      pointRadius: 0,
+    });
+
+    new Chart(document.getElementById("grafico-historico"), {
+      type: "line",
+      data: { labels: dados.labels, datasets },
+      options: {
+        responsive: true,
+        interaction: { mode: "index", intersect: false },
+        scales: {
+          x: { ticks: { color: corMuted }, grid: { color: corBorda } },
+          y: { ticks: { color: corMuted }, grid: { color: corBorda } },
+        },
+        plugins: {
+          legend: { labels: { color: corTexto } },
+        },
+      },
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

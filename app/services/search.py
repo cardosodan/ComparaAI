@@ -101,3 +101,18 @@ def listar_marcas_disponiveis() -> list[str]:
     usado pra categorias no navbar)."""
     linhas = Product.query.with_entities(Product.brand).distinct().order_by(Product.brand).all()
     return [linha[0] for linha in linhas]
+
+
+def produtos_similares(produto: Product, limite: int = 4):
+    """"Produtos similares" no rodapé da página de produto (brief seção
+    6.3) — mesma categoria, ordenado pelo preço mais PRÓXIMO do produto
+    atual primeiro. É uma aproximação por faixa de preço, não uma
+    similaridade de especificação/comportamento de usuário de verdade
+    (não existe dado nenhum disso ainda)."""
+    candidatos = Product.query.filter(
+        Product.category_id == produto.category_id,
+        Product.id != produto.id,
+    ).all()
+    preco_referencia = float(produto.price_min or 0)
+    candidatos.sort(key=lambda p: abs(float(p.price_min or 0) - preco_referencia))
+    return candidatos[:limite]

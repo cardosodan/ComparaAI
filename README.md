@@ -4,8 +4,9 @@ Comparador de preços de eletrodomésticos — Fase 1 (MVP): geladeiras, dados
 mockados, rodando localmente. Nome provisório (placeholder), ver seção
 "Nome do projeto" do brief original.
 
-**Status: Passo 5 concluído** (página de resultados + filtros + ordenação).
-Próximo passo: página de produto (tabela comparativa + gráfico de histórico).
+**Status: Passo 6 concluído** (página de produto — specs, tabela
+comparativa, gráfico de histórico, similares). Próximo passo: ajustes
+finos de responsividade e microinterações.
 
 ## Stack
 
@@ -168,6 +169,42 @@ produtos com capacidade ≥450L (conferido a mão contra os specs), e
 `ordenar=menor_preco` traz primeiro o produto realmente mais barato
 (Consul CRB39, R$2.299 de base — o menor preço-base de todo o catálogo).
 
+## Página de produto (Passo 6)
+
+`/produto/<slug>` deixou de ser stub — `app/services/pricing.py` (novo,
+separado de `search.py` de propósito: search.py acha produtos, pricing.py
+formata preço/histórico de UM produto já achado):
+
+- **Especificações**: `formatar_especificacoes()` traduz o JSON livre de
+  `Product.specs` em rótulos em português — mapeamento fixo pra geladeira
+  (Fase 1); categoria nova vai precisar do próprio mapeamento.
+- **Tabela comparativa de preços**: uma linha por loja (mais barata
+  primeiro, esgotadas por último), com ícone de loja física/online,
+  "frete" honesto ("Retirada na loja" pra física, "Consulte o site" pra
+  online — não inventa valor de frete que não existe), badge "Melhor" na
+  oferta mais barata em estoque, "atualizado há X horas/dias"
+  (`tempo_relativo()`, calculado em Python — não deixei conta de data
+  solta no Jinja), e "Esgotado" no lugar do botão pra ofertas fora de
+  estoque.
+- **Gráfico de histórico** (Chart.js, `unpkg.com/chart.js@4`): uma linha
+  por loja + uma linha "Média" mais grossa — o brief pede "por loja OU
+  média" (seção 6.3); em vez de um toggle customizado, deixei tudo no
+  mesmo gráfico e a legenda nativa do Chart.js já resolve isso (clica pra
+  esconder/mostrar linha, inclusive dá pra isolar só a Média). Cores dos
+  eixos/legenda lidas via `getComputedStyle` das CSS custom properties em
+  vez de hex duplicado no JS — muda a paleta, o gráfico acompanha sozinho.
+- **Produtos similares**: `produtos_similares()` em `search.py` — mesma
+  categoria, ordenado por proximidade de preço (não é uma similaridade de
+  especificação de verdade, documentado como aproximação).
+
+Testado com curl + parse do JSON embutido no HTML (não só visual):
+especificações renderizam com rótulo certo, "Esgotado" aparece na oferta
+certa (Casas Bahia, um dos 4 casos esgotados do seed), badge "Melhor"
+aparece exatamente 1 vez por página, produtos similares NUNCA incluem o
+próprio produto, e os dados do gráfico têm 31 pontos (30 dias + hoje), 1
+série por loja + a série de média com valores decrescentes (bate com a
+narrativa "preço caindo" do seed).
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
@@ -196,6 +233,6 @@ requirements.txt
 - [x] 3. Layout base (`base.html`) com navbar, footer, sistema de cores/tipografia
 - [x] 4. Home page com busca
 - [x] 5. Rota e template de resultados de busca + filtros
-- [ ] 6. Página de produto com tabela comparativa e gráfico de histórico
+- [x] 6. Página de produto com tabela comparativa e gráfico de histórico
 - [ ] 7. Ajustes finos de responsividade e microinterações
 - [ ] 8. Painel admin simples de edição manual de preços
