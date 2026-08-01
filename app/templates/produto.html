@@ -104,11 +104,20 @@
                        class="inline-block bg-elevated hover:bg-accent hover:text-accent-ink text-ink text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap">
                       Ver oferta
                     </a>
+                  {% elif oferta.url_busca %}
+                    <!-- Sem link direto confirmado ainda pra essa loja (só a
+                         Bemol tem hoje) — busca no Google escopada ao site da
+                         loja em vez de um botão morto ou sem ação nenhuma.
+                         Rótulo diferente de propósito ("Buscar", não "Ver
+                         oferta") pra não prometer um achado exato. -->
+                    <a href="{{ oferta.url_busca }}" target="_blank" rel="noopener nofollow"
+                       class="inline-block bg-elevated hover:bg-accent hover:text-accent-ink text-ink text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap">
+                      Buscar oferta
+                    </a>
                   {% else %}
-                    <!-- Em estoque, mas ainda sem link real confirmado dessa loja
-                         (só a Bemol tem URL de verdade hoje) — nunca um botão
-                         apontando pra página que não existe. -->
-                    <span class="text-xs text-ink-faint whitespace-nowrap">Link em breve</span>
+                    <!-- Loja sem site nenhum (loja física fictícia) — não dá
+                         pra buscar num domínio que não existe. -->
+                    <span class="text-xs text-ink-faint whitespace-nowrap">Sem site</span>
                   {% endif %}
                 </td>
               </tr>

@@ -4,6 +4,7 @@ este módulo é sobre como EXIBIR preço/histórico de UM produto já achado.
 """
 from collections import defaultdict
 from datetime import datetime
+from urllib.parse import quote_plus, urlparse
 
 
 def montar_historico_para_grafico(produto) -> dict:
@@ -47,6 +48,34 @@ def tempo_relativo(momento: datetime, agora: datetime) -> str:
         return f"há {h} hora{'s' if h != 1 else ''}"
     dias = int(horas / 24)
     return f"há {dias} dia{'s' if dias != 1 else ''}"
+
+
+def url_busca_de_apoio(loja, produto) -> str | None:
+    """Quando a oferta não tem `Price.url` confirmado (loja sem dado real
+    extraído ainda — hoje só a Bemol tem, ver seed_data.py), gera uma
+    busca no Google ESCOPADA ao domínio da própria loja (`site:dominio.com
+    nome do produto`) em vez de mostrar um botão sem destino nenhum.
+
+    Por que Google e não a busca interna de cada site: testei o padrão de
+    busca real de cada loja do seed direto (curl) e Magazine Luiza/Casas
+    Bahia bloqueiam requisição automatizada mesmo pra isso (mesmo
+    bloqueio de bot já documentado em atualizacao_precos.py), e não
+    encontrei com confiança o padrão de busca certo da Consul — inventar
+    uma URL de busca "no achismo" pra cada site repetiria exatamente o
+    erro que causou o bug anterior (link sintético que nunca existe).
+    `site:` no Google sempre resolve numa página real, então nunca gera
+    outro dead end — o preço da honestidade aqui é indicar claramente no
+    rótulo do link ("Buscar em", nunca "Ver oferta") que não é uma
+    garantia de achar o produto exato, só um atalho de busca.
+
+    `None` só quando a própria loja não tem site nenhum (Eletro Norte,
+    loja física fictícia sem `website_url`) — não dá pra "buscar" num
+    domínio que não existe."""
+    if not loja.website_url:
+        return None
+    dominio = urlparse(loja.website_url).netloc
+    consulta = f"site:{dominio} {produto.name}"
+    return f"https://www.google.com/search?q={quote_plus(consulta)}"
 
 
 # Fase 1 é só geladeiras — mapeamento de specs fixo pra essa categoria.

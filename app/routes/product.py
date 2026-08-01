@@ -6,7 +6,12 @@ from datetime import datetime
 from flask import Blueprint, abort, render_template
 
 from app.models import Product, Store
-from app.services.pricing import formatar_especificacoes, montar_historico_para_grafico, tempo_relativo
+from app.services.pricing import (
+    formatar_especificacoes,
+    montar_historico_para_grafico,
+    tempo_relativo,
+    url_busca_de_apoio,
+)
 from app.services.search import produtos_similares
 
 product_bp = Blueprint("product", __name__)
@@ -29,6 +34,9 @@ def detalhe(slug):
             "loja": preco.store,
             "preco": preco.price,
             "url": preco.url,
+            # Fallback só quando não há link direto confirmado (ver
+            # url_busca_de_apoio) — mantém a tabela sem nenhum botão morto.
+            "url_busca": None if preco.url else url_busca_de_apoio(preco.store, produto),
             "em_estoque": preco.in_stock,
             "atualizado_ha": tempo_relativo(preco.last_updated, agora),
             "frete": "Retirada na loja" if preco.store.type == Store.TIPO_FISICA else "Consulte o site",
