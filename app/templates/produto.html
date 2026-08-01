@@ -97,13 +97,18 @@
                 <td class="px-5 py-4 text-ink-muted hidden sm:table-cell">{{ oferta.frete }}</td>
                 <td class="px-5 py-4 text-ink-faint hidden sm:table-cell whitespace-nowrap">{{ oferta.atualizado_ha }}</td>
                 <td class="px-5 py-4 text-right">
-                  {% if oferta.em_estoque %}
-                    <a href="{{ oferta.url or '#' }}" target="_blank" rel="noopener nofollow"
+                  {% if not oferta.em_estoque %}
+                    <span class="text-xs text-ink-faint whitespace-nowrap">Esgotado</span>
+                  {% elif oferta.url %}
+                    <a href="{{ oferta.url }}" target="_blank" rel="noopener nofollow"
                        class="inline-block bg-elevated hover:bg-accent hover:text-accent-ink text-ink text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap">
                       Ver oferta
                     </a>
                   {% else %}
-                    <span class="text-xs text-ink-faint whitespace-nowrap">Esgotado</span>
+                    <!-- Em estoque, mas ainda sem link real confirmado dessa loja
+                         (só a Bemol tem URL de verdade hoje) — nunca um botão
+                         apontando pra página que não existe. -->
+                    <span class="text-xs text-ink-faint whitespace-nowrap">Link em breve</span>
                   {% endif %}
                 </td>
               </tr>

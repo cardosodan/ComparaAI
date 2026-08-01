@@ -263,7 +263,14 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
                 variacao = random.uniform(-0.08, 0.12)  # loja mais barata até mais cara que a base
                 preco = _preco_com_variacao(dados["preco_base"], variacao)
                 em_estoque = random.random() > 0.08  # ~92% em estoque, resto "esgotado" (realismo)
-                url = f"{loja.website_url or '#'}/produto/{produto.slug}" if loja.website_url else None
+                # SEM url sintética aqui de propósito — usuário reportou clicar
+                # em "Ver oferta" e cair numa página 404 real da loja (ex:
+                # amazon.com.br/produto/<slug-nosso>, que nunca existiu de
+                # verdade). Só a Bemol (bloco `real` acima) tem URL confirmada
+                # por scraping; as outras 5 lojas ficam sem link até termos
+                # dado real de cada uma — produto.html mostra "Link em breve"
+                # em vez de um botão que promete um destino que não existe.
+                url = None
                 atualizado_ha_horas = random.randint(1, 30)
 
             db.session.add(Price(
