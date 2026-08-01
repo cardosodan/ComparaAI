@@ -83,7 +83,10 @@ _PADROES_BUSCA_POR_SITE = {
 # (bug pré-existente) mesmo pra produto Brastemp/Consul/Samsung/LG — cada
 # marca tem seu próprio site oficial de verdade no Brasil.
 _SITE_OFICIAL_POR_MARCA = {
-    "Electrolux": "https://www.electrolux.com.br",
+    # loja.electrolux.com.br é a LOJA de verdade (VTEX) — www.electrolux.com.br
+    # é só o site institucional/marketing e nunca teve nenhuma página de
+    # busca funcionando (toda tentativa de query nele deu 503).
+    "Electrolux": "https://loja.electrolux.com.br",
     "Brastemp": "https://www.brastemp.com.br",
     "Consul": "https://www.consul.com.br",
     "Samsung": "https://www.samsung.com/br",

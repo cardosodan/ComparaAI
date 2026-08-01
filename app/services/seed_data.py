@@ -105,6 +105,16 @@ PRODUTOS = [
                 "preco": 3179.00, "em_estoque": False,
                 "imagem": "https://bemol.vtexassets.com/arquivos/ids/483967/192150-9.jpg?v=639093423065830000",
             },
+            # Mesmo modelo DFN41 no site oficial da Electrolux (não
+            # www.electrolux.com.br — esse é o site institucional/marketing,
+            # sempre 503 pra qualquer busca; a loja de verdade é
+            # loja.electrolux.com.br, achada via WebSearch, mesma
+            # plataforma VTEX de Bemol/Brastemp/Consul).
+            "Loja Oficial da Marca": {
+                "url": "https://loja.electrolux.com.br/geladeira-refrigerador-frost-free-371-litros-dfn41/p",
+                "preco": 3469.00, "em_estoque": True,
+                "imagem": "https://electrolux.vtexassets.com/arquivos/ids/214052/Refrigerador_DFN41_Frontal_1000x1000_principal.jpg?v=638804364273430000",
+            },
         },
     },
     {
@@ -117,6 +127,12 @@ PRODUTOS = [
                 "url": "https://www.bemol.com.br/geladeira-electrolux-frost-free-490-litros-efficient-com-autosense-inverse-inox-look-ib7s/p",
                 "preco": 5768.00, "em_estoque": True,
                 "imagem": "https://bemol.vtexassets.com/arquivos/ids/613701/238944.jpg?v=639167831135570000",
+            },
+            # Mesmo modelo IB7S no site oficial da Electrolux (loja.electrolux.com.br).
+            "Loja Oficial da Marca": {
+                "url": "https://loja.electrolux.com.br/geladeira-electrolux-frost-free-490l-efficient-com-autosense-inverse-inox-look--ib7s-/p",
+                "preco": 4399.00, "em_estoque": True,
+                "imagem": "https://electrolux.vtexassets.com/arquivos/ids/288571/Refrigerator_IB7S_Front_Electrolux_Portuguese-1000x1000.raw.jpg?v=639046841437700000",
             },
         },
     },
