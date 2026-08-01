@@ -1,0 +1,38 @@
+{% from "components/product_card.html" import cartao_produto %}
+
+<div class="flex items-center justify-between gap-4 mb-6">
+  <p class="text-sm text-ink-muted">
+    {% if produtos %}
+      <strong class="text-ink">{{ produtos|length }}</strong>
+      resultado{{ "s" if produtos|length != 1 else "" }}{% if termo %} para “{{ termo }}”{% endif %}
+    {% else %}
+      Nenhum resultado{% if termo %} para “{{ termo }}”{% endif %}
+    {% endif %}
+  </p>
+
+  <select name="ordenar" class="text-sm bg-surface border border-border rounded-lg px-3 py-1.5 text-ink focus:outline-none focus:ring-2 focus:ring-accent">
+    <option value="relevante" {% if ordenar == "relevante" %}selected{% endif %}>Mais relevante</option>
+    <option value="menor_preco" {% if ordenar == "menor_preco" %}selected{% endif %}>Menor preço</option>
+    <option value="maior_preco" {% if ordenar == "maior_preco" %}selected{% endif %}>Maior preço</option>
+  </select>
+</div>
+
+{% if produtos %}
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    {% for produto in produtos %}
+      {{ cartao_produto(produto) }}
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="text-center py-16 border border-dashed border-border rounded-2xl">
+    <i data-lucide="search-x" class="w-10 h-10 text-ink-faint mx-auto"></i>
+    <p class="font-display text-lg font-bold text-ink mt-4">Nenhum produto encontrado</p>
+    <p class="text-ink-muted mt-1 max-w-sm mx-auto">
+      Tente remover alguns filtros ou buscar só por <strong class="text-ink">"geladeira"</strong>
+      pra ver todas as opções disponíveis.
+    </p>
+    <a href="{{ url_for('main.busca', q='geladeira') }}" class="inline-block mt-4 text-accent hover:text-accent-hover font-medium">
+      Ver todas as geladeiras
+    </a>
+  </div>
+{% endif %}

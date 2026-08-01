@@ -4,8 +4,8 @@ Comparador de preços de eletrodomésticos — Fase 1 (MVP): geladeiras, dados
 mockados, rodando localmente. Nome provisório (placeholder), ver seção
 "Nome do projeto" do brief original.
 
-**Status: Passo 4 concluído** (home page com busca/autocomplete).
-Próximo passo: página de resultados de busca + filtros.
+**Status: Passo 5 concluído** (página de resultados + filtros + ordenação).
+Próximo passo: página de produto (tabela comparativa + gráfico de histórico).
 
 ## Stack
 
@@ -132,6 +132,42 @@ hardcoded nos templates; categoria nova no banco aparece sozinha).
   qualquer busca/card da home não cair num 404 antes dos Passos 5/6
   existirem de verdade. Ficam óbvios (dizem "Em construção — Passo X").
 
+## Página de resultados + filtros (Passo 5)
+
+`/busca` deixou de ser stub — filtros de verdade em `app/services/search.py`
+(`filtrar_produtos`): marca, faixa de preço, capacidade (litros), frost
+free, tipo de loja (online/física) + ordenação (mais relevante/menor
+preço/maior preço), tudo combinável ao mesmo tempo.
+
+- **Um `<form>` só** (`resultados.html`) envolve filtros E ordenação —
+  qualquer mudança (`hx-trigger="change"`) dispara `hx-get` pro HTMX, que
+  troca só `#resultados-conteudo` (contador + grid), sem recarregar
+  navbar/footer. `hx-push-url="true"` mantém a URL compartilhável/com
+  botão voltar funcionando.
+- **A mesma rota serve dois formatos**: página inteira (`resultados.html`)
+  em navegação direta, ou só o fragmento (`components/
+  _resultados_conteudo.html`) quando detecta o header `HX-Request` —
+  clássico padrão de progressive enhancement do HTMX, testado nos dois
+  casos (fragmento confirmado sem nenhum `<nav>`/`<html>`/`<footer>`
+  vazando).
+- Marca/tipo de loja filtram no banco (colunas reais); capacidade/frost
+  free filtram em Python depois de buscar — `specs` é JSON, e extrair
+  isso via SQL muda de sintaxe entre SQLite/Postgres (o projeto quer
+  trocar de banco sem dor de cabeça, ver `config.py`).
+- Filtro de marca é **data-driven** (`listar_marcas_disponiveis()`), não
+  hardcoded — mesmo princípio já usado nas categorias do navbar.
+- Card de produto reaproveitado do Passo 4 (`components/product_card.html`)
+  sem nenhuma mudança — o brief pede exatamente a mesma informação nos
+  dois lugares (imagem, nome, faixa de preço, badge "Melhor preço").
+- Estado vazio cuidado: mensagem clara + link "Ver todas as geladeiras".
+
+Testado com curl (não só assumido): 10 resultados pra "geladeira" (bate
+com o total seedado), filtro por marca isola só os produtos certos,
+`frost_free=nao` corretamente vazio (todo o seed é frost-free), 6
+produtos com capacidade ≥450L (conferido a mão contra os specs), e
+`ordenar=menor_preco` traz primeiro o produto realmente mais barato
+(Consul CRB39, R$2.299 de base — o menor preço-base de todo o catálogo).
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
@@ -159,7 +195,7 @@ requirements.txt
 - [x] 2. Modelos de banco (`models.py`) + script de seed com dados mockados
 - [x] 3. Layout base (`base.html`) com navbar, footer, sistema de cores/tipografia
 - [x] 4. Home page com busca
-- [ ] 5. Rota e template de resultados de busca + filtros
+- [x] 5. Rota e template de resultados de busca + filtros
 - [ ] 6. Página de produto com tabela comparativa e gráfico de histórico
 - [ ] 7. Ajustes finos de responsividade e microinterações
 - [ ] 8. Painel admin simples de edição manual de preços

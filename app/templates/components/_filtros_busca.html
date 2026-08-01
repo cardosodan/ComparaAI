@@ -1,0 +1,92 @@
+{# Filtros laterais no desktop, painel recolhível no mobile (brief seção
+   6.2: "Filtros laterais (ou top bar no mobile)") — mesmo <form> pai
+   (resultados.html) dispara hx-get em qualquer "change" aqui dentro. #}
+<div x-data="{ filtrosAbertos: false }">
+  <button
+    type="button"
+    @click="filtrosAbertos = !filtrosAbertos"
+    class="lg:hidden w-full flex items-center justify-between gap-2 bg-surface border border-border rounded-xl px-4 py-3 mb-4"
+  >
+    <span class="text-sm font-semibold text-ink flex items-center gap-2">
+      <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> Filtros
+    </span>
+    <i data-lucide="chevron-down" class="w-4 h-4 text-ink-muted transition-transform" :class="filtrosAbertos ? 'rotate-180' : ''"></i>
+  </button>
+
+  <div
+    :class="filtrosAbertos ? 'block' : 'hidden'"
+    class="lg:block bg-surface lg:bg-transparent border border-border lg:border-0 rounded-2xl p-4 lg:p-0 space-y-6 lg:sticky lg:top-20"
+  >
+    <div>
+      <p class="text-sm font-semibold text-ink mb-2">Marca</p>
+      <div class="space-y-1.5">
+        {% for marca in marcas_disponiveis %}
+          <label class="flex items-center gap-2 text-sm text-ink-muted">
+            <input type="checkbox" name="marca" value="{{ marca }}"
+                   {% if marca in marcas_selecionadas %}checked{% endif %}
+                   class="rounded border-border bg-elevated text-accent focus:ring-accent focus:ring-offset-0">
+            {{ marca }}
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm font-semibold text-ink mb-2">Faixa de preço (R$)</p>
+      <div class="flex items-center gap-2">
+        <input type="number" name="preco_min" value="{{ preco_min }}" placeholder="Mín"
+               class="w-full min-w-0 px-2 py-1.5 text-sm rounded-lg bg-elevated border border-border text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-accent">
+        <span class="text-ink-faint">–</span>
+        <input type="number" name="preco_max" value="{{ preco_max }}" placeholder="Máx"
+               class="w-full min-w-0 px-2 py-1.5 text-sm rounded-lg bg-elevated border border-border text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-accent">
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm font-semibold text-ink mb-2">Capacidade (litros)</p>
+      <div class="flex items-center gap-2">
+        <input type="number" name="capacidade_min" value="{{ capacidade_min }}" placeholder="Mín"
+               class="w-full min-w-0 px-2 py-1.5 text-sm rounded-lg bg-elevated border border-border text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-accent">
+        <span class="text-ink-faint">–</span>
+        <input type="number" name="capacidade_max" value="{{ capacidade_max }}" placeholder="Máx"
+               class="w-full min-w-0 px-2 py-1.5 text-sm rounded-lg bg-elevated border border-border text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-accent">
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm font-semibold text-ink mb-2">Frost Free</p>
+      <div class="space-y-1.5">
+        <label class="flex items-center gap-2 text-sm text-ink-muted">
+          <input type="radio" name="frost_free" value="" {% if not frost_free_param %}checked{% endif %} class="border-border text-accent focus:ring-accent">
+          Todos
+        </label>
+        <label class="flex items-center gap-2 text-sm text-ink-muted">
+          <input type="radio" name="frost_free" value="sim" {% if frost_free_param == "sim" %}checked{% endif %} class="border-border text-accent focus:ring-accent">
+          Sim
+        </label>
+        <label class="flex items-center gap-2 text-sm text-ink-muted">
+          <input type="radio" name="frost_free" value="nao" {% if frost_free_param == "nao" %}checked{% endif %} class="border-border text-accent focus:ring-accent">
+          Não
+        </label>
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm font-semibold text-ink mb-2">Tipo de loja</p>
+      <div class="space-y-1.5">
+        <label class="flex items-center gap-2 text-sm text-ink-muted">
+          <input type="checkbox" name="tipo_loja" value="online" {% if "online" in tipos_loja_selecionados %}checked{% endif %} class="rounded border-border bg-elevated text-accent focus:ring-accent focus:ring-offset-0">
+          Online
+        </label>
+        <label class="flex items-center gap-2 text-sm text-ink-muted">
+          <input type="checkbox" name="tipo_loja" value="fisica" {% if "fisica" in tipos_loja_selecionados %}checked{% endif %} class="rounded border-border bg-elevated text-accent focus:ring-accent focus:ring-offset-0">
+          Física
+        </label>
+      </div>
+    </div>
+
+    <button type="submit" class="w-full bg-accent hover:bg-accent-hover text-accent-ink font-bold py-2.5 rounded-xl transition-colors lg:hidden">
+      Aplicar filtros
+    </button>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{% if termo %}“{{ termo }}”{% else %}Resultados{% endif %} — ComparaAI{% endblock %}
+
+{% block content %}
+<form
+  id="form-busca-filtros"
+  hx-get="{{ url_for('main.busca') }}"
+  hx-target="#resultados-conteudo"
+  hx-trigger="change"
+  hx-push-url="true"
+>
+  <input type="hidden" name="q" value="{{ termo }}">
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <h1 class="font-display text-2xl font-bold text-ink mb-6">
+      {% if termo %}Resultados para “{{ termo }}”{% else %}Todos os produtos{% endif %}
+    </h1>
+
+    <div class="lg:grid lg:grid-cols-[240px_1fr] lg:gap-8 lg:items-start">
+      <aside>
+        {% include "components/_filtros_busca.html" %}
+      </aside>
+
+      <div id="resultados-conteudo">
+        {% include "components/_resultados_conteudo.html" %}
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

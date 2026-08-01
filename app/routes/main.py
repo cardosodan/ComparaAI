@@ -1,10 +1,10 @@
 """Rotas principais: home (Passo 4) + autocomplete de busca (Passo 4) +
-stub da página de resultados (substituído de verdade no Passo 5).
+resultados de busca com filtros (Passo 5).
 """
 from flask import Blueprint, render_template, request
 
 from app.models import Product
-from app.services.search import buscar_produtos
+from app.services.search import buscar_produtos, filtrar_produtos, listar_marcas_disponiveis
 
 main_bp = Blueprint("main", __name__)
 
@@ -28,10 +28,58 @@ def busca_sugestoes():
     return render_template("components/_autocomplete_sugestoes.html", sugestoes=sugestoes, termo=termo)
 
 
+def _float_ou_none(valor: str | None) -> float | None:
+    if not valor:
+        return None
+    try:
+        return float(valor)
+    except ValueError:
+        return None
+
+
 @main_bp.route("/busca")
 def busca():
-    """Stub temporário — página de resultados de verdade (grid, filtros,
-    ordenação) é o Passo 5. Existe agora só pra buscar a partir da home
-    não cair num 404 durante a revisão deste passo."""
-    termo = request.args.get("q", "")
-    return render_template("_stub_em_construcao.html", titulo="Resultados da busca", passo="Passo 5", termo=termo)
+    termo = request.args.get("q", "").strip()
+    marcas_selecionadas = request.args.getlist("marca")
+    tipos_loja_selecionados = request.args.getlist("tipo_loja")
+    frost_free_param = request.args.get("frost_free") or ""
+    ordenar = request.args.get("ordenar", "relevante")
+
+    preco_min = _float_ou_none(request.args.get("preco_min"))
+    preco_max = _float_ou_none(request.args.get("preco_max"))
+    capacidade_min = _float_ou_none(request.args.get("capacidade_min"))
+    capacidade_max = _float_ou_none(request.args.get("capacidade_max"))
+
+    frost_free = {"sim": True, "nao": False}.get(frost_free_param)
+
+    produtos = filtrar_produtos(
+        termo=termo or None,
+        marcas=marcas_selecionadas or None,
+        tipos_loja=tipos_loja_selecionados or None,
+        frost_free=frost_free,
+        preco_min=preco_min,
+        preco_max=preco_max,
+        capacidade_min=capacidade_min,
+        capacidade_max=capacidade_max,
+        ordenar=ordenar,
+    )
+
+    contexto = dict(
+        produtos=produtos,
+        termo=termo,
+        ordenar=ordenar,
+        marcas_disponiveis=listar_marcas_disponiveis(),
+        marcas_selecionadas=marcas_selecionadas,
+        tipos_loja_selecionados=tipos_loja_selecionados,
+        frost_free_param=frost_free_param,
+        preco_min=request.args.get("preco_min", ""),
+        preco_max=request.args.get("preco_max", ""),
+        capacidade_min=request.args.get("capacidade_min", ""),
+        capacidade_max=request.args.get("capacidade_max", ""),
+    )
+
+    # Requisição vinda do HTMX (mudança de filtro/ordenação): devolve só o
+    # miolo (contador + grid), sem repetir navbar/footer/head inteiros.
+    if request.headers.get("HX-Request"):
+        return render_template("components/_resultados_conteudo.html", **contexto)
+    return render_template("resultados.html", **contexto)
