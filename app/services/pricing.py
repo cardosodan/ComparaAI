@@ -4,7 +4,7 @@ este módulo é sobre como EXIBIR preço/histórico de UM produto já achado.
 """
 from collections import defaultdict
 from datetime import datetime
-from urllib.parse import quote_plus, urlparse
+from urllib.parse import quote_plus
 
 
 def montar_historico_para_grafico(produto) -> dict:
@@ -50,32 +50,69 @@ def tempo_relativo(momento: datetime, agora: datetime) -> str:
     return f"há {dias} dia{'s' if dias != 1 else ''}"
 
 
+# Padrão de busca REAL de cada loja (não uma URL de produto específico —
+# isso é o `Price.url`, só existe de verdade pra Bemol hoje). Testado um
+# por um via curl (com User-Agent de navegador) antes de usar qualquer um
+# destes: Amazon (/s?k=), Brastemp/Consul (/s?q=, mesma plataforma VTEX)
+# e Samsung/LG (/search) responderam 200 de verdade. Usuário pediu
+# explicitamente pra entrar no site de verdade em vez de cair numa busca
+# do Google — por isso essa tabela existe em vez do fallback anterior.
+_PADROES_BUSCA_POR_SITE = {
+    "https://www.amazon.com.br": "https://www.amazon.com.br/s?k={q}",
+    "https://www.magazineluiza.com.br": "https://www.magazineluiza.com.br/busca/{q}/",
+    # Casas Bahia bloqueou toda tentativa de verificação automatizada (403,
+    # mesmo bloqueio de bot documentado em atualizacao_precos.py) — mas é
+    # VTEX como Bemol/Brastemp/Consul, então usa o mesmo padrão /s?q= dessa
+    # plataforma (alta confiança mesmo sem conseguir confirmar por curl).
+    "https://www.casasbahia.com.br": "https://www.casasbahia.com.br/s?q={q}",
+    "https://www.brastemp.com.br": "https://www.brastemp.com.br/search?q={q}",
+    "https://www.consul.com.br": "https://www.consul.com.br/s?q={q}",
+    "https://www.samsung.com/br": "https://www.samsung.com/br/search/?searchvalue={q}",
+    "https://www.lg.com/br": "https://www.lg.com/br/search?search={q}",
+    # Electrolux: toda URL com query bateu 503 nos meus testes (só a home
+    # responde 200) — sem padrão confirmado, fica de fora do dict de
+    # propósito e cai no fallback de homepage abaixo em vez de arriscar
+    # outra URL inventada.
+}
+
+# "Loja Oficial da Marca" no seed sempre apontava pro site da Electrolux
+# (bug pré-existente) mesmo pra produto Brastemp/Consul/Samsung/LG — cada
+# marca tem seu próprio site oficial de verdade no Brasil.
+_SITE_OFICIAL_POR_MARCA = {
+    "Electrolux": "https://www.electrolux.com.br",
+    "Brastemp": "https://www.brastemp.com.br",
+    "Consul": "https://www.consul.com.br",
+    "Samsung": "https://www.samsung.com/br",
+    "LG": "https://www.lg.com/br",
+}
+
+
 def url_busca_de_apoio(loja, produto) -> str | None:
     """Quando a oferta não tem `Price.url` confirmado (loja sem dado real
-    extraído ainda — hoje só a Bemol tem, ver seed_data.py), gera uma
-    busca no Google ESCOPADA ao domínio da própria loja (`site:dominio.com
-    nome do produto`) em vez de mostrar um botão sem destino nenhum.
+    extraído ainda — hoje só a Bemol tem, ver seed_data.py), manda pra
+    busca de verdade DENTRO do site da própria loja (não uma busca no
+    Google) — pedido explícito do usuário, que quer "entrar no site" e
+    não ficar só numa pesquisa externa.
 
-    Por que Google e não a busca interna de cada site: testei o padrão de
-    busca real de cada loja do seed direto (curl) e Magazine Luiza/Casas
-    Bahia bloqueiam requisição automatizada mesmo pra isso (mesmo
-    bloqueio de bot já documentado em atualizacao_precos.py), e não
-    encontrei com confiança o padrão de busca certo da Consul — inventar
-    uma URL de busca "no achismo" pra cada site repetiria exatamente o
-    erro que causou o bug anterior (link sintético que nunca existe).
-    `site:` no Google sempre resolve numa página real, então nunca gera
-    outro dead end — o preço da honestidade aqui é indicar claramente no
-    rótulo do link ("Buscar em", nunca "Ver oferta") que não é uma
-    garantia de achar o produto exato, só um atalho de busca.
+    Site sem padrão de busca confirmado (Electrolux, ou qualquer domínio
+    fora de `_PADROES_BUSCA_POR_SITE`) cai na HOMEPAGE do site — ainda
+    assim entra no site de verdade, só sem a query pronta; melhor que
+    arriscar inventar uma URL de busca que talvez nem exista (foi
+    exatamente esse erro que gerou o bug anterior: um link sintético que
+    nunca existiu).
 
     `None` só quando a própria loja não tem site nenhum (Eletro Norte,
-    loja física fictícia sem `website_url`) — não dá pra "buscar" num
-    domínio que não existe."""
-    if not loja.website_url:
+    loja física fictícia sem `website_url`)."""
+    base = loja.website_url
+    if loja.name == "Loja Oficial da Marca":
+        base = _SITE_OFICIAL_POR_MARCA.get(produto.brand, base)
+    if not base:
         return None
-    dominio = urlparse(loja.website_url).netloc
-    consulta = f"site:{dominio} {produto.name}"
-    return f"https://www.google.com/search?q={quote_plus(consulta)}"
+
+    padrao = _PADROES_BUSCA_POR_SITE.get(base)
+    if padrao:
+        return padrao.format(q=quote_plus(produto.name))
+    return base
 
 
 # Fase 1 é só geladeiras — mapeamento de specs fixo pra essa categoria.

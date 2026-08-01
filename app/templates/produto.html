@@ -106,13 +106,15 @@
                     </a>
                   {% elif oferta.url_busca %}
                     <!-- Sem link direto confirmado ainda pra essa loja (só a
-                         Bemol tem hoje) — busca no Google escopada ao site da
-                         loja em vez de um botão morto ou sem ação nenhuma.
-                         Rótulo diferente de propósito ("Buscar", não "Ver
-                         oferta") pra não prometer um achado exato. -->
+                         Bemol tem hoje) — manda pra busca DENTRO do site da
+                         própria loja (nunca Google), pedido explícito do
+                         usuário. Rótulo "Ver na loja" cobre tanto o caso de
+                         busca certeira quanto o fallback de homepage (site
+                         sem padrão de busca confirmado), sem prometer um
+                         achado exato como "Ver oferta" prometeria. -->
                     <a href="{{ oferta.url_busca }}" target="_blank" rel="noopener nofollow"
                        class="inline-block bg-elevated hover:bg-accent hover:text-accent-ink text-ink text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap">
-                      Buscar oferta
+                      Ver na loja
                     </a>
                   {% else %}
                     <!-- Loja sem site nenhum (loja física fictícia) — não dá
