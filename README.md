@@ -350,17 +350,22 @@ produtos reais (ver seção acima) resolve os dois:
   DIRETO pra `produto.melhor_oferta.url` (a loja com o menor preço,
   `target="_blank"`), a pedido do usuário — mas só a oferta **Bemol** de
   cada produto tem URL real; as outras 5 lojas (Amazon, Magazine Luiza,
-  Casas Bahia, Loja Oficial, Eletro Norte) usam URL sintética
+  Casas Bahia, Loja Oficial, Eletro Norte) usavam URL sintética
   (`{site_da_loja}/produto/{slug}`, nunca existiu de verdade), então
   clicar em qualquer card cuja melhor oferta fosse uma dessas batia numa
   página "não encontrada" real no site de destino. O usuário reportou
   "todos os links... aparecem não encontrado" e pediu pra reverter — o
   clique volta a ir pra nossa página, e é lá, na tabela por loja
   (Passo 6), que cada oferta individual tem seu próprio link "Ver oferta"
-  pra fora (mesmo problema de URL sintética ali, mas isolado por loja em
-  vez de quebrar a navegação principal do site inteiro) — ofertas
-  esgotadas (`in_stock=False`) ficam com a linha inteira acinzentada
-  (`opacity-50`) e mostram "Esgotado" no lugar do botão.
+  pra fora. **A URL sintética foi removida na raiz** (`seed_data.py`
+  passou a gravar `url=None` pra qualquer loja sem dado real extraído de
+  verdade) — a tabela mostra "Link em breve" no lugar do botão quando não
+  há URL confirmada, nunca mais um link que promete um destino
+  inexistente. Ofertas esgotadas (`in_stock=False`) continuam com a linha
+  inteira acinzentada (`opacity-50`) e "Esgotado" no lugar do botão — os
+  dois estados (sem link / esgotado) são visualmente parecidos mas
+  logicamente distintos, e não se confundem entre si porque só um dos
+  dois pode ser verdade por vez pra cada oferta.
 - **Fotos reais pra 8 dos 10 produtos**: usando a mesma técnica de achar
   produtos reais na Bemol (sitemap público + JSON-LD, ver seção acima),
   achei o equivalente mais próximo (capacidade/linha) pra Electrolux,
