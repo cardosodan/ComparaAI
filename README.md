@@ -4,12 +4,14 @@ Comparador de preços de eletrodomésticos — Fase 1 (MVP): geladeiras, dados
 mockados, rodando localmente. Nome provisório (placeholder), ver seção
 "Nome do projeto" do brief original.
 
-**Status: MVP completo (Passos 1-8 do brief original) + Fase 2 iniciada**
-(atualização automática de preços) — busca com autocomplete, resultados
-com filtros, página de produto com comparação de preços e histórico,
-painel admin, microinterações e skeleton loading, e um pipeline real de
-atualização automática de preço (JSON-LD + Groq como fallback), já
-testado contra uma página real de e-commerce.
+**Status: MVP completo (Passos 1-8 do brief original) + Fase 2 em
+andamento** (atualização automática de preços) — busca com autocomplete,
+resultados com filtros, página de produto com comparação de preços e
+histórico, painel admin (com busca e toggle de estoque), microinterações e
+skeleton loading, pipeline real de atualização automática de preço
+(JSON-LD + Groq como fallback, testado contra e-commerce real), clique no
+produto redireciona pra melhor oferta de verdade, e **8 dos 10 produtos já
+têm foto real** (achada no catálogo público da Bemol).
 
 ## Stack
 
@@ -334,6 +336,51 @@ escalar isso de verdade continua sendo um programa de afiliados oficial
 (Amazon Associates, Awin, Lomadee) — esse pipeline aqui é o caminho pra
 lojas que não tiverem isso disponível (ex: Bemol/lojas físicas locais
 com site próprio).
+
+## Clique no produto redireciona pra melhor oferta + fotos reais
+
+Dois pedidos do usuário, resolvidos juntos porque a mesma busca por
+produtos reais (ver seção acima) resolve os dois:
+
+- **`components/product_card.html`**: o clique principal do card agora vai
+  DIRETO pra `produto.melhor_oferta.url` (a loja com o menor preço,
+  `target="_blank"`) — não mais pra nossa página interna. A página de
+  comparação (Passo 6, com a tabela de todas as ofertas + gráfico)
+  continua existindo, só que como link secundário discreto ("Comparar N
+  ofertas") embaixo do card, pra não perder o valor central do site
+  (comparar preços) mesmo mandando o clique principal pra fora.
+- **Fotos reais pra 8 dos 10 produtos**: usando a mesma técnica de achar
+  produtos reais na Bemol (sitemap público + JSON-LD, ver seção acima),
+  achei o equivalente mais próximo (capacidade/linha) pra Electrolux,
+  Brastemp, Consul e Samsung — cada um ganhou foto real
+  (`Product.image_url`) + o preço/estoque/URL da oferta Bemol trocado pelo
+  dado real extraído (não mais gerado aleatoriamente). **LG ficou de fora
+  de propósito** — não apareceu em ~80 sitemaps de produto verificados
+  (a Bemol provavelmente não vende essa marca); os 2 produtos LG
+  continuam com o ícone placeholder (nunca uma foto inventada/errada) e
+  oferta Bemol fictícia como os outros já eram.
+- `produto.html` (Passo 6) e `product_card.html` (Passos 4/5) agora
+  mostram `<img>` de verdade quando `Product.image_url` existe, com
+  fallback pro ícone genérico quando não existe — nunca uma imagem
+  quebrada.
+
+**Honestidade sobre o que "real" significa aqui**: são produtos
+DIFERENTES (mas da mesma marca/capacidade aproximada) do nosso catálogo
+mockado, não uma correspondência exata 1:1 — ex: nosso "Electrolux DF44"
+virou o "DFN41" real mais parecido que a Bemol vende. E só a oferta
+**Bemol** de cada produto é real; as outras lojas (Amazon, Magazine
+Luiza, Casas Bahia, Loja Oficial, Eletro Norte) continuam com preço/URL
+gerados, esperando o mesmo tipo de trabalho de correspondência manual
+antes de virarem reais também.
+
+## Painel admin — busca e toggle (polish adicional)
+
+- Barra de busca (Alpine.js, filtro client-side por nome/modelo/marca —
+  não precisa de round-trip ao servidor pra uma lista de 10 produtos).
+- Checkbox de "em estoque" trocado por um toggle switch (trilho + bolinha
+  deslizando, `peer-checked` do Tailwind) — mais claro visualmente que uma
+  checkbox nua, mesmo funcionamento por baixo (`name="in_stock"`, ligado
+  ao `<form>` via atributo `form=`, como já era).
 
 ## Estrutura
 

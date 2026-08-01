@@ -27,8 +27,24 @@
     {% endif %}
   {% endwith %}
 
-  {% for produto in produtos %}
-    <div class="mb-8">
+  <div x-data="{ busca: '' }">
+    <div class="relative max-w-sm mb-8">
+      <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint"></i>
+      <input
+        type="text"
+        x-model="busca"
+        placeholder="Buscar por modelo, produto ou marca..."
+        class="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl bg-surface border border-border text-ink
+               placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-accent"
+      >
+    </div>
+
+    {% for produto in produtos %}
+    <div
+      x-show="busca === '' || $el.dataset.busca.includes(busca.toLowerCase())"
+      data-busca="{{ (produto.name ~ ' ' ~ produto.model ~ ' ' ~ produto.brand)|lower }}"
+      class="mb-8"
+    >
       <p class="font-display font-bold text-ink mb-3">
         {{ produto.name }}
         <span class="text-xs font-normal text-ink-faint">({{ produto.brand }})</span>
@@ -67,11 +83,15 @@
                     >
                   </td>
                   <td class="px-4 py-2.5">
-                    <input
-                      form="form-preco-{{ preco.id }}"
-                      type="checkbox" name="in_stock" {% if preco.in_stock %}checked{% endif %}
-                      class="rounded border-border bg-elevated text-accent focus:ring-accent focus:ring-offset-0"
-                    >
+                    <label class="relative inline-flex items-center cursor-pointer select-none">
+                      <input
+                        form="form-preco-{{ preco.id }}"
+                        type="checkbox" name="in_stock" {% if preco.in_stock %}checked{% endif %}
+                        class="sr-only peer"
+                      >
+                      <span class="w-11 h-6 bg-elevated border border-border rounded-full peer-checked:bg-accent/20 peer-checked:border-accent transition-colors"></span>
+                      <span class="absolute left-1 top-1 w-4 h-4 bg-ink-faint rounded-full transition-transform peer-checked:translate-x-5 peer-checked:bg-accent"></span>
+                    </label>
                   </td>
                   <td class="px-4 py-2.5 text-right">
                     <button form="form-preco-{{ preco.id }}" type="submit"
@@ -86,6 +106,7 @@
         </div>
       </div>
     </div>
-  {% endfor %}
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}

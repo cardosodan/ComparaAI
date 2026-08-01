@@ -13,9 +13,13 @@
 
   <!-- Galeria + info principal -->
   <div class="grid md:grid-cols-2 gap-8 items-start mt-4">
-    <div class="aspect-square bg-elevated border border-border rounded-2xl flex items-center justify-center">
-      <!-- Sem foto real de produto ainda (Fase 1) -->
-      <i data-lucide="refrigerator" class="w-32 h-32 text-ink-faint"></i>
+    <div class="aspect-square bg-elevated border border-border rounded-2xl flex items-center justify-center overflow-hidden">
+      {% if produto.image_url %}
+        <img src="{{ produto.image_url }}" alt="{{ produto.name }}" class="w-full h-full object-cover">
+      {% else %}
+        <!-- Sem foto real pra esse produto ainda — ícone genérico em vez de <img> quebrada. -->
+        <i data-lucide="refrigerator" class="w-32 h-32 text-ink-faint"></i>
+      {% endif %}
     </div>
 
     <div>

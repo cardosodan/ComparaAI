@@ -1,36 +1,55 @@
 {% macro cartao_produto(produto) %}
-<a href="{{ url_for('product.detalhe', slug=produto.slug) }}"
-   class="group block bg-surface border border-border rounded-2xl overflow-hidden
-          transition-all duration-150 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/20 hover:border-accent/40">
-
-  <div class="aspect-square bg-elevated flex items-center justify-center">
-    <!-- Sem foto real de produto ainda (Fase 1) — ícone genérico de geladeira
-         em vez de <img> quebrada; troca por produto.image_url assim que
-         houver fotos de verdade. -->
-    <i data-lucide="refrigerator" class="w-16 h-16 text-ink-faint"></i>
-  </div>
-
-  <div class="p-4 space-y-2">
-    {% if produto.melhor_oferta %}
-      <span class="inline-block text-[11px] font-bold uppercase tracking-wide bg-accent text-accent-ink px-2 py-0.5 rounded-full">
-        Melhor preço
-      </span>
-    {% endif %}
-
-    <p class="text-xs text-ink-muted uppercase tracking-wide">{{ produto.brand }}</p>
-    <p class="font-display font-semibold text-ink leading-snug group-hover:text-accent transition-colors">
-      {{ produto.name }}
-    </p>
-
-    <div>
-      <p class="text-xs text-ink-muted">A partir de</p>
-      <p class="font-display text-xl font-bold text-ink">
-        R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}
-      </p>
-      {% if produto.price_max and produto.price_max != produto.price_min %}
-        <p class="text-xs text-ink-faint">até R$ {{ "%.2f"|format(produto.price_max)|replace(".", ",") }}</p>
+{# O clique principal do card vai DIRETO pra loja com o melhor preço
+   (pedido do usuário: "quero ser redirecionado pro site em que ele esta
+   sendo vendido com tal preço") — em vez da nossa página interna. A
+   página de comparação (Passo 6, tabela com todas as ofertas + gráfico)
+   continua existindo, só que como link secundário ("Comparar N ofertas"),
+   pra não perder o valor central do site (comparar preços) mesmo
+   mandando o clique principal pra fora. #}
+<div class="group bg-surface border border-border rounded-2xl overflow-hidden
+            transition-all duration-150 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/20 hover:border-accent/40">
+  <a href="{{ produto.melhor_oferta.url if produto.melhor_oferta else url_for('product.detalhe', slug=produto.slug) }}"
+     target="_blank" rel="noopener nofollow" class="block">
+    <div class="aspect-square bg-elevated flex items-center justify-center overflow-hidden">
+      {% if produto.image_url %}
+        <img src="{{ produto.image_url }}" alt="{{ produto.name }}" class="w-full h-full object-cover" loading="lazy">
+      {% else %}
+        <!-- Sem foto real pra esse produto ainda — ícone genérico em vez de <img> quebrada. -->
+        <i data-lucide="refrigerator" class="w-16 h-16 text-ink-faint"></i>
       {% endif %}
     </div>
+
+    <div class="p-4 pb-2 space-y-2">
+      {% if produto.melhor_oferta %}
+        <span class="inline-block text-[11px] font-bold uppercase tracking-wide bg-accent text-accent-ink px-2 py-0.5 rounded-full">
+          Melhor preço
+        </span>
+      {% endif %}
+
+      <p class="text-xs text-ink-muted uppercase tracking-wide">{{ produto.brand }}</p>
+      <p class="font-display font-semibold text-ink leading-snug group-hover:text-accent transition-colors">
+        {{ produto.name }}
+      </p>
+
+      <div>
+        <p class="text-xs text-ink-muted">
+          A partir de
+          {% if produto.melhor_oferta %}<span class="text-ink-faint">— {{ produto.melhor_oferta.store.name }}</span>{% endif %}
+        </p>
+        <p class="font-display text-xl font-bold text-ink">
+          R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}
+        </p>
+        {% if produto.price_max and produto.price_max != produto.price_min %}
+          <p class="text-xs text-ink-faint">até R$ {{ "%.2f"|format(produto.price_max)|replace(".", ",") }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </a>
+
+  <div class="px-4 pb-4">
+    <a href="{{ url_for('product.detalhe', slug=produto.slug) }}" class="text-xs text-ink-muted hover:text-accent transition-colors underline underline-offset-2">
+      Comparar {{ produto.prices|length }} oferta{{ "s" if produto.prices|length != 1 else "" }}
+    </a>
   </div>
-</a>
+</div>
 {% endmacro %}
