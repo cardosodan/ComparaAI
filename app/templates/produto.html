@@ -105,20 +105,17 @@
                       Ver oferta
                     </a>
                   {% elif oferta.url_busca %}
-                    <!-- Sem link direto confirmado ainda pra essa loja (só a
-                         Bemol tem hoje) — manda pra busca DENTRO do site da
-                         própria loja (nunca Google), pedido explícito do
-                         usuário. Rótulo "Ver na loja" cobre tanto o caso de
-                         busca certeira quanto o fallback de homepage (site
-                         sem padrão de busca confirmado), sem prometer um
-                         achado exato como "Ver oferta" prometeria. -->
+                    {#- Sem link direto confirmado pra essa loja nesse produto
+                       — manda pra busca/homepage do site real da própria
+                       loja (nunca Google). Rótulo "Ver na loja" cobre os dois
+                       casos sem prometer um achado exato como "Ver oferta". -#}
                     <a href="{{ oferta.url_busca }}" target="_blank" rel="noopener nofollow"
                        class="inline-block bg-elevated hover:bg-accent hover:text-accent-ink text-ink text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap">
                       Ver na loja
                     </a>
                   {% else %}
-                    <!-- Loja sem site nenhum (loja física fictícia) — não dá
-                         pra buscar num domínio que não existe. -->
+                    {#- Loja sem site nenhum (loja física fictícia) — não dá
+                       pra buscar num domínio que não existe. -#}
                     <span class="text-xs text-ink-faint whitespace-nowrap">Sem site</span>
                   {% endif %}
                 </td>

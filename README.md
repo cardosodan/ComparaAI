@@ -430,6 +430,47 @@ marca vai pro próprio site oficial de verdade.
 `None` só quando a própria loja não tem site nenhum (Eletro Norte, loja
 física fictícia sem `website_url`) — tabela mostra "Sem site" nesse caso.
 
+## Links reais expandidos além da Bemol (Brastemp, Consul, Samsung, LG)
+
+Usuário testou o link genérico ("Ver na loja") e comparou com o da Amazon
+(que entra certinho na busca) — perguntou por que os outros só abrem a
+homepage em vez do produto específico. Resposta: só a Bemol tinha dado
+real até então. Perguntado se valia a pena repetir o mesmo trabalho de
+achar produto real (sitemap + JSON-LD) pra mais lojas — usuário topou
+tentar Brastemp/Consul/Samsung/LG.
+
+`seed_data.py`: `bemol_real` (uma loja só) generalizado pra `lojas_reais`
+(dict `{nome_da_loja: {...}}`, várias lojas por produto). Achados via
+sitemap público de cada marca:
+- **Brastemp e Consul** (mesma plataforma VTEX da Bemol): sitemap
+  `/sitemap/product-N.xml` + JSON-LD deram URL + preço + estoque + foto
+  REAIS pros 4 produtos (BRM44, BRE80, CRB39, CRM50) — mesmo modelo exato
+  do nosso catálogo em 2 casos (BRM44, CRB39), aproximação por capacidade
+  nos outros 2. Preço/estoque desses 4 na "Loja Oficial da Marca"
+  refletem o que a página real dizia no momento da busca (a maioria
+  "OutOfStock" — dado real, não escolha nossa).
+- **Samsung e LG**: sitemap/busca achou a URL real do produto (RF22R7351SR
+  501L pra RF50, GC-L247SLUV 601L — capacidade EXATA — pra GC-L, etc.),
+  mas **essas duas não publicam preço/estoque em lugar estático nenhum**
+  — confirmado checando o HTML bruto da página (nenhum `R$`, nenhum JSON-LD
+  com `offers`): o preço só existe depois de uma chamada de API feita pelo
+  JavaScript do navegador, invisível pra qualquer requisição HTTP simples
+  (`requests`/`curl`/WebFetch, nenhum executa JS). Por isso essas 4
+  entradas (RT46, RF50, GC-B, GC-L) só têm `url` (+ `imagem` via
+  `og:image`, quando existe) — preço/estoque continuam simulados pra elas,
+  já que inventar um valor e chamá-lo de "real" seria pior que não ter.
+- `popular_produtos_e_precos()`: "Loja Oficial da Marca" agora entra
+  GARANTIDA na seleção de lojas de um produto sempre que há dado real pra
+  ela (mesma garantia que a Bemol já tinha) — preço/estoque usam o dado
+  real quando presente, senão caem no mesmo simulado de qualquer loja sem
+  dado real (decisão campo a campo, não tudo-ou-nada por loja).
+
+**Amazon, Magazine Luiza, Casas Bahia continuam sem dado real** (mesma
+razão de sempre — Magazine Luiza/Casas Bahia bloqueiam scraping
+ativamente, confirmado nos testes da seção acima; Amazon não foi tentada
+porque a busca (`/s?k=`) já resolve bem o caso de uso sem precisar achar
+produto exato).
+
 ## Painel admin — busca e toggle (polish adicional)
 
 - Barra de busca (Alpine.js, filtro client-side por nome/modelo/marca —

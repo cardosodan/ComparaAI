@@ -72,27 +72,39 @@ LOJAS = [
 # Brastemp, Consul, Samsung, LG — variando capacidade/frost-free/cor pra
 # dar variedade real de filtro (não só o mesmo produto 10 vezes).
 #
-# `bemol_real` (quando presente): foto + preço + estoque + URL REAIS,
-# achados buscando o catálogo de verdade da Bemol (sitemap público +
-# extração via JSON-LD, ver app/services/atualizacao_precos.py) — pedido
-# do usuário ("quero ser redirecionado pro site" + "todos com foto").
-# Não é o MESMO modelo exato do nosso catálogo mockado (ex: nosso "DF44"
-# vira o "DFN41" real mais parecido em capacidade/linha) — aproximação
-# deliberada, documentada, não uma correspondência 1:1 garantida.
-# LG não apareceu em ~80 sitemaps de produto verificados (Bemol
-# provavelmente não vende essa marca) — os 2 produtos LG ficam sem
-# `bemol_real` de propósito (foto cai no ícone placeholder, não uma foto
-# fingindo ser de um produto que não existe).
+# `lojas_reais` (quando presente): dict {nome_da_loja: {...}} com dado REAL
+# achado no catálogo de verdade daquela loja (sitemap público + extração
+# via JSON-LD, mesma técnica de sempre, ver app/services/atualizacao_precos.py)
+# — pedido do usuário ("quero ser redirecionado pro site" + "todos com
+# foto" + depois "entre no produto específico, não só no site"). Nunca é o
+# MESMO produto exato do nosso catálogo mockado, sempre o mais parecido em
+# capacidade/linha que a loja de verdade vende — aproximação deliberada,
+# documentada, não correspondência 1:1 garantida.
+#
+# Cada entrada tem `url` (obrigatório) e, quando disponível, `imagem`/
+# `preco`/`em_estoque`. Brastemp e Consul (mesma plataforma VTEX da Bemol)
+# expõem os 4 campos via JSON-LD. Samsung e LG **não publicam preço/estoque
+# em lugar nenhum estático** — a busca por produto nessas duas confirmou
+# que são sites carregados por JavaScript (o preço só aparece depois de uma
+# chamada de API feita pelo navegador, invisível pra qualquer requisição
+# HTTP simples) — por isso essas duas entradas só têm `url` (+ `imagem` via
+# tag `og:image`, quando existe) e o preço/estoque continuam sendo
+# SIMULADOS pra elas (`popular_produtos_e_precos` decide isso campo a
+# campo, não é tudo ou nada). Ainda assim resolve o pedido central do
+# usuário — entrar na página REAL e específica daquele produto — mesmo sem
+# conseguir sincronizar preço ao vivo com essas duas marcas.
 PRODUTOS = [
     {
         "brand": "Electrolux", "model": "DF44", "nome_curto": "Frost Free 382L",
         "preco_base": 2799.00,
         "specs": {"capacidade_litros": 382, "frost_free": True, "cor": "Branca",
                    "voltagem": "220V", "dimensoes_cm": "179 x 68 x 68", "consumo_kwh_mes": 38.6},
-        "bemol_real": {
-            "url": "https://www.bemol.com.br/geladeira-electrolux-frost-free-371l-funcao-drink-express-duplex-127v-branca-dfn41/p",
-            "preco": 3179.00, "em_estoque": False,
-            "imagem": "https://bemol.vtexassets.com/arquivos/ids/483967/192150-9.jpg?v=639093423065830000",
+        "lojas_reais": {
+            "Bemol": {
+                "url": "https://www.bemol.com.br/geladeira-electrolux-frost-free-371l-funcao-drink-express-duplex-127v-branca-dfn41/p",
+                "preco": 3179.00, "em_estoque": False,
+                "imagem": "https://bemol.vtexassets.com/arquivos/ids/483967/192150-9.jpg?v=639093423065830000",
+            },
         },
     },
     {
@@ -100,10 +112,12 @@ PRODUTOS = [
         "preco_base": 4599.00,
         "specs": {"capacidade_litros": 490, "frost_free": True, "cor": "Inox",
                    "voltagem": "Bivolt", "dimensoes_cm": "186 x 70 x 73", "consumo_kwh_mes": 42.1},
-        "bemol_real": {
-            "url": "https://www.bemol.com.br/geladeira-electrolux-frost-free-490-litros-efficient-com-autosense-inverse-inox-look-ib7s/p",
-            "preco": 5768.00, "em_estoque": True,
-            "imagem": "https://bemol.vtexassets.com/arquivos/ids/613701/238944.jpg?v=639167831135570000",
+        "lojas_reais": {
+            "Bemol": {
+                "url": "https://www.bemol.com.br/geladeira-electrolux-frost-free-490-litros-efficient-com-autosense-inverse-inox-look-ib7s/p",
+                "preco": 5768.00, "em_estoque": True,
+                "imagem": "https://bemol.vtexassets.com/arquivos/ids/613701/238944.jpg?v=639167831135570000",
+            },
         },
     },
     {
@@ -111,10 +125,18 @@ PRODUTOS = [
         "preco_base": 2649.00,
         "specs": {"capacidade_litros": 375, "frost_free": True, "cor": "Branca",
                    "voltagem": "127V", "dimensoes_cm": "177 x 67 x 67", "consumo_kwh_mes": 37.9},
-        "bemol_real": {
-            "url": "https://www.bemol.com.br/geladeira-brastemp-frost-free-duplex-375-litros-compartimento-extrafrio-inox-brm44hk/p",
-            "preco": 3449.00, "em_estoque": False,
-            "imagem": "https://bemol.vtexassets.com/arquivos/ids/398580/194468.jpg?v=639090093114030000",
+        "lojas_reais": {
+            "Bemol": {
+                "url": "https://www.bemol.com.br/geladeira-brastemp-frost-free-duplex-375-litros-compartimento-extrafrio-inox-brm44hk/p",
+                "preco": 3449.00, "em_estoque": False,
+                "imagem": "https://bemol.vtexassets.com/arquivos/ids/398580/194468.jpg?v=639090093114030000",
+            },
+            # Mesmo modelo BRM44 de verdade, achado no sitemap oficial da Brastemp.
+            "Loja Oficial da Marca": {
+                "url": "https://www.brastemp.com.br/geladeira-brastemp-frost-free-375-litros-brm44hb/p",
+                "preco": 3089.00, "em_estoque": False,
+                "imagem": "https://brastemp.vtexassets.com/arquivos/ids/285442/01_Brastemp_Geladeira_BRM44HB_Imagem_Frontal_Fechada.jpg?v=639120439093400000",
+            },
         },
     },
     {
@@ -122,10 +144,19 @@ PRODUTOS = [
         "preco_base": 5899.00,
         "specs": {"capacidade_litros": 573, "frost_free": True, "cor": "Inox",
                    "voltagem": "220V", "dimensoes_cm": "191 x 91 x 71", "consumo_kwh_mes": 48.3},
-        "bemol_real": {
-            "url": "https://www.bemol.com.br/geladeira-brastemp-frost-free-inverse-side-554-litros-inox-bro85ak/p",
-            "preco": 7859.00, "em_estoque": False,
-            "imagem": "https://bemol.vtexassets.com/arquivos/ids/519181/223947_a.jpg?v=639096960327000000",
+        "lojas_reais": {
+            "Bemol": {
+                "url": "https://www.bemol.com.br/geladeira-brastemp-frost-free-inverse-side-554-litros-inox-bro85ak/p",
+                "preco": 7859.00, "em_estoque": False,
+                "imagem": "https://bemol.vtexassets.com/arquivos/ids/519181/223947_a.jpg?v=639096960327000000",
+            },
+            # BRE85AK (588L) é a Inverse mais próxima da nossa BRE80 (573L)
+            # no catálogo oficial da Brastemp.
+            "Loja Oficial da Marca": {
+                "url": "https://www.brastemp.com.br/geladeira-brastemp-frost-free-inverse-588-litros-cor-inox-com-smart-bar-bre85ak/p",
+                "preco": 6539.00, "em_estoque": False,
+                "imagem": "https://brastemp.vtexassets.com/arquivos/ids/270753/Brastemp_Geladeira_BRE85AK_Imagem_Frontal_fechada_jpg_1.jpg?v=638996724145800000",
+            },
         },
     },
     {
@@ -133,10 +164,18 @@ PRODUTOS = [
         "preco_base": 2299.00,
         "specs": {"capacidade_litros": 340, "frost_free": True, "cor": "Branca",
                    "voltagem": "127V", "dimensoes_cm": "170 x 66 x 66", "consumo_kwh_mes": 35.2},
-        "bemol_real": {
-            "url": "https://www.bemol.com.br/geladeira-consul-frost-free-342-litros-gavetao-hortifruti-branca-crb39ab/p",
-            "preco": 3119.00, "em_estoque": False,
-            "imagem": "https://bemol.vtexassets.com/arquivos/ids/409316/120334-7.jpg?v=639096891458630000",
+        "lojas_reais": {
+            "Bemol": {
+                "url": "https://www.bemol.com.br/geladeira-consul-frost-free-342-litros-gavetao-hortifruti-branca-crb39ab/p",
+                "preco": 3119.00, "em_estoque": False,
+                "imagem": "https://bemol.vtexassets.com/arquivos/ids/409316/120334-7.jpg?v=639096891458630000",
+            },
+            # Mesmo modelo CRB39 de verdade, achado no sitemap oficial da Consul.
+            "Loja Oficial da Marca": {
+                "url": "https://www.consul.com.br/geladeira-consul-frost-free-342-litros-evox-crb39ak/p",
+                "preco": 2609.00, "em_estoque": False,
+                "imagem": "https://consul.vtexassets.com/arquivos/ids/273738/01_Consul_Geladeira_CRB39AK_Imagem_Frontal_Frontal_png_3.jpg?v=639014052388430000",
+            },
         },
     },
     {
@@ -144,10 +183,18 @@ PRODUTOS = [
         "preco_base": 3399.00,
         "specs": {"capacidade_litros": 450, "frost_free": True, "cor": "Branca",
                    "voltagem": "220V", "dimensoes_cm": "183 x 70 x 69", "consumo_kwh_mes": 40.0},
-        "bemol_real": {
-            "url": "https://www.bemol.com.br/geladeira-consul-frost-free-300-litros-freezer-supercapacidade-branca-crb36ab/p",
-            "preco": 2449.00, "em_estoque": False,
-            "imagem": "https://bemol.vtexassets.com/arquivos/ids/409307/120332.jpg?v=639096889477570000",
+        "lojas_reais": {
+            "Bemol": {
+                "url": "https://www.bemol.com.br/geladeira-consul-frost-free-300-litros-freezer-supercapacidade-branca-crb36ab/p",
+                "preco": 2449.00, "em_estoque": False,
+                "imagem": "https://bemol.vtexassets.com/arquivos/ids/409307/120332.jpg?v=639096889477570000",
+            },
+            # Mesmo modelo CRM50 de verdade, achado no sitemap oficial da Consul.
+            "Loja Oficial da Marca": {
+                "url": "https://www.consul.com.br/geladeira-consul-frost-free-duplex-com-espaco-flex-e-controle-interno-de-temperatura-410-litros-cor-branca-crm50fb/p",
+                "preco": 3499.00, "em_estoque": False,
+                "imagem": "https://consul.vtexassets.com/arquivos/ids/273875/01_Consul_Geladeira_CRM50FB_Imagem_Frontal_3--2-.jpg?v=639014100338000000",
+            },
         },
     },
     {
@@ -155,10 +202,20 @@ PRODUTOS = [
         "preco_base": 4299.00,
         "specs": {"capacidade_litros": 460, "frost_free": True, "cor": "Inox",
                    "voltagem": "220V", "dimensoes_cm": "182 x 70 x 74", "consumo_kwh_mes": 39.5},
-        "bemol_real": {
-            "url": "https://www.bemol.com.br/geladeira-samsung-duplex-rt42-evolution-com-smartthings-ai-inox-bivolt-415l/p",
-            "preco": 3959.00, "em_estoque": True,
-            "imagem": "https://bemol.vtexassets.com/arquivos/ids/398739/240859.jpg?v=639105809594570000",
+        "lojas_reais": {
+            "Bemol": {
+                "url": "https://www.bemol.com.br/geladeira-samsung-duplex-rt42-evolution-com-smartthings-ai-inox-bivolt-415l/p",
+                "preco": 3959.00, "em_estoque": True,
+                "imagem": "https://bemol.vtexassets.com/arquivos/ids/398739/240859.jpg?v=639105809594570000",
+            },
+            # Site da Samsung carrega preço/estoque via JavaScript (nenhum
+            # dado estático disponível) — só URL real (RB50DG6020S9AZ, 462L,
+            # a bottom-freezer mais próxima da nossa RT46/460L). Essa página
+            # também não tinha og:image específico (só o logo genérico da
+            # Samsung), então sem `imagem` aqui de propósito.
+            "Loja Oficial da Marca": {
+                "url": "https://www.samsung.com/br/refrigerators/bottom-mount-freezer/rb6000d-462l-refined-inox-rb50dg6020s9az/",
+            },
         },
     },
     {
@@ -166,10 +223,19 @@ PRODUTOS = [
         "preco_base": 7499.00,
         "specs": {"capacidade_litros": 501, "frost_free": True, "cor": "Inox",
                    "voltagem": "Bivolt", "dimensoes_cm": "179 x 91 x 74", "consumo_kwh_mes": 45.7},
-        "bemol_real": {
-            "url": "https://www.bemol.com.br/geladeira-samsung-smart-french-door-dispenser-de-aguia-e-gelo-550-litros-inox-rf26/p",
-            "preco": 11169.00, "em_estoque": False,
-            "imagem": "https://bemol.vtexassets.com/arquivos/ids/409223/241162.jpg?v=639093422531800000",
+        "lojas_reais": {
+            "Bemol": {
+                "url": "https://www.bemol.com.br/geladeira-samsung-smart-french-door-dispenser-de-aguia-e-gelo-550-litros-inox-rf26/p",
+                "preco": 11169.00, "em_estoque": False,
+                "imagem": "https://bemol.vtexassets.com/arquivos/ids/409223/241162.jpg?v=639093422531800000",
+            },
+            # RF22R7351SR (501L French Door) bate exato com a capacidade da
+            # nossa RF50. Preço/estoque via JS (ver comentário acima) — só
+            # URL + imagem (og:image) reais.
+            "Loja Oficial da Marca": {
+                "url": "https://www.samsung.com/br/refrigerators/french-door/501l-real-sts-rf22r7351sr-az/",
+                "imagem": "https://stg-images.samsung.com/is/image/samsung/br-ref-fdsr-rf22r7351sraz-rf22r7351sr-az-frontsilver-thumb-185294248",
+            },
         },
     },
     {
@@ -177,12 +243,32 @@ PRODUTOS = [
         "preco_base": 3199.00,
         "specs": {"capacidade_litros": 395, "frost_free": True, "cor": "Branca",
                    "voltagem": "220V", "dimensoes_cm": "180 x 68 x 70", "consumo_kwh_mes": 36.8},
+        # Sem entrada "Bemol" de propósito — LG não aparece no catálogo dela
+        # (~80 sitemaps verificados, ver histórico acima). GN-B392PQWB
+        # (395L Duplex) achado direto no site oficial da LG via busca —
+        # preço/estoque também via JS lá (mesmo caso de Samsung), só URL +
+        # imagem (og:image) reais.
+        "lojas_reais": {
+            "Loja Oficial da Marca": {
+                "url": "https://www.lg.com/br/geladeiras/geladeiras-duplex/gn-b392pqwb/",
+                "imagem": "https://www.lg.com/content/dam/channel/wcms/br/images/geladeiras/gn-b392pqwb/gallery/Basic-450.jpg",
+            },
+        },
     },
     {
         "brand": "LG", "model": "GC-L", "nome_curto": "Side by Side 601L",
         "preco_base": 8299.00,
         "specs": {"capacidade_litros": 601, "frost_free": True, "cor": "Inox",
                    "voltagem": "Bivolt", "dimensoes_cm": "179 x 91 x 73", "consumo_kwh_mes": 51.4},
+        # GC-L247SLUV (601L Side by Side) — mesmo prefixo "GC-L" do nosso
+        # model e capacidade EXATAMENTE igual (601L). Mesma limitação de
+        # preço/estoque via JS que a Samsung.
+        "lojas_reais": {
+            "Loja Oficial da Marca": {
+                "url": "https://www.lg.com/br/geladeiras/lg-GC-L247SLUV-geladeira-side-by-side-601-litros",
+                "imagem": "https://www.lg.com/content/dam/channel/wcms/br/images/geladeiras/gc-l247sluv_apzfsbs_essp_br_c/450_basic.jpg",
+            },
+        },
     },
 ]
 
@@ -218,22 +304,24 @@ def popular_lojas() -> list[Store]:
 
 def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]) -> list[Product]:
     loja_bemol = next((l for l in lojas if l.name == "Bemol"), None)
+    loja_oficial = next((l for l in lojas if l.name == "Loja Oficial da Marca"), None)
 
     produtos = []
     for dados in PRODUTOS:
         nome = f"{dados['brand']} {dados['nome_curto']}"
-        real = dados.get("bemol_real")
+        lojas_reais = dados.get("lojas_reais", {})
+        # Foto REAL (de qualquer loja que tenha uma) quando existe; cai no
+        # ícone placeholder do template (produto.image_url vazio) só quando
+        # NENHUMA loja com dado real tem foto pra esse produto — nunca um
+        # caminho de arquivo local fingindo ser foto de produto.
+        imagem_real = next((v["imagem"] for v in lojas_reais.values() if v.get("imagem")), None)
         produto = Product(
             name=nome,
             brand=dados["brand"],
             model=dados["model"],
             category=categoria_geladeiras,
             specs=dados["specs"],
-            # Foto REAL (achada no catálogo de verdade da Bemol) quando existe;
-            # cai no ícone placeholder do template (produto.image_url vazio)
-            # pros 2 produtos LG, que a Bemol não vende — nunca um caminho
-            # de arquivo local fingindo ser foto de produto.
-            image_url=(real["imagem"] if real else None),
+            image_url=imagem_real,
             slug=slugify(f"{nome}-{dados['model']}"),
         )
         db.session.add(produto)
@@ -242,35 +330,40 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
         # 3 a 5 lojas por produto, sorteadas — sempre incluindo pelo menos
         # 1 loja física (Bemol/Eletro Norte), pra todo produto ter opção
         # online E física (o diferencial do produto, ver brief seção 1).
-        # Quando temos dado REAL da Bemol pro produto, ela entra garantida
-        # (não sorteada) — senão o dado real podia nem aparecer se o sorteio
-        # escolhesse Eletro Norte em vez dela.
+        # Lojas com dado REAL pra esse produto (Bemol e/ou Loja Oficial da
+        # Marca) entram GARANTIDAS (não sorteadas) — senão o dado real
+        # podia nem aparecer se o sorteio escolhesse outra loja no lugar.
         lojas_online = [l for l in lojas if l.type == Store.TIPO_ONLINE]
         lojas_fisicas = [l for l in lojas if l.type == Store.TIPO_FISICA]
+
+        oficial_tem_dado_real = "Loja Oficial da Marca" in lojas_reais and loja_oficial is not None
+        candidatas_online = [l for l in lojas_online if not (oficial_tem_dado_real and l is loja_oficial)]
         n_online = random.randint(2, min(4, len(lojas_online)))
-        selecionadas = random.sample(lojas_online, n_online)
-        loja_fisica_escolhida = loja_bemol if (real and loja_bemol) else random.choice(lojas_fisicas)
+        n_sorteadas = max(0, n_online - (1 if oficial_tem_dado_real else 0))
+        selecionadas = random.sample(candidatas_online, min(n_sorteadas, len(candidatas_online)))
+        if oficial_tem_dado_real:
+            selecionadas.append(loja_oficial)
+
+        loja_fisica_escolhida = loja_bemol if ("Bemol" in lojas_reais and loja_bemol) else random.choice(lojas_fisicas)
         selecionadas.append(loja_fisica_escolhida)
 
         for loja in selecionadas:
-            usar_dado_real = real is not None and loja is loja_bemol
-            if usar_dado_real:
-                preco = Decimal(str(real["preco"]))
-                em_estoque = real["em_estoque"]
-                url = real["url"]
+            dado_real = lojas_reais.get(loja.name)
+            url = dado_real["url"] if dado_real else None
+
+            # Preço/estoque só vêm do dado real quando ele os TEM de verdade
+            # (Bemol/Brastemp/Consul expõem os dois via JSON-LD; Samsung/LG
+            # só têm URL/imagem confirmadas — preço/estoque delas são
+            # carregados por JavaScript, invisíveis pra scraping estático,
+            # então continuam simulados como qualquer loja sem dado real).
+            if dado_real and "preco" in dado_real:
+                preco = Decimal(str(dado_real["preco"]))
+                em_estoque = dado_real["em_estoque"]
                 atualizado_ha_horas = random.randint(1, 6)  # dado "fresco", acabou de ser buscado de verdade
             else:
                 variacao = random.uniform(-0.08, 0.12)  # loja mais barata até mais cara que a base
                 preco = _preco_com_variacao(dados["preco_base"], variacao)
                 em_estoque = random.random() > 0.08  # ~92% em estoque, resto "esgotado" (realismo)
-                # SEM url sintética aqui de propósito — usuário reportou clicar
-                # em "Ver oferta" e cair numa página 404 real da loja (ex:
-                # amazon.com.br/produto/<slug-nosso>, que nunca existiu de
-                # verdade). Só a Bemol (bloco `real` acima) tem URL confirmada
-                # por scraping; as outras 5 lojas ficam sem link até termos
-                # dado real de cada uma — produto.html mostra "Link em breve"
-                # em vez de um botão que promete um destino que não existe.
-                url = None
                 atualizado_ha_horas = random.randint(1, 30)
 
             db.session.add(Price(
