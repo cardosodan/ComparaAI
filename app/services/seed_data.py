@@ -910,10 +910,13 @@ PRODUTOS_MICROONDAS = [
                 "imagem": "https://carrefourbr.vtexassets.com/arquivos/ids/215575781/9966730_1.jpg?v=639180956466830000",
             },
             # Amazon — sem JSON-LD, confirmado AO VIVO com Playwright: em
-            # estoque, preço real na página.
+            # estoque. PROMOÇÃO REAL (achado só na 2ª verificação, o
+            # bloco de preço da Amazon mostra "De: R$859,00" riscado
+            # acima do preço atual): de R$859 por R$749 (~12%).
             "Amazon": {
                 "url": "https://www.amazon.com.br/Micro-Ondas-Electrolux-Prata-Painel-Integrado/dp/B076XCSJ4Q",
                 "preco": 749.00, "em_estoque": True,
+                "preco_original": 859.00, "promo_dias": 7,
                 "imagem": "https://m.media-amazon.com/images/I/51jWG1vyGyL._AC_SX679_.jpg",
             },
             # Bemol — JSON-LD real, mas indisponível.
@@ -1039,10 +1042,13 @@ PRODUTOS_MICROONDAS = [
                 "imagem": "https://carrefourbr.vtexassets.com/arquivos/ids/26440123/6558828_1.jpg?v=637729232468330000",
             },
             # Amazon — sem JSON-LD, confirmado AO VIVO com Playwright: em
-            # estoque, preço real na página.
+            # estoque. PROMOÇÃO REAL: "De: R$891,00" riscado na página,
+            # de R$891 por R$659 (~26%, o maior desconto desta categoria
+            # depois do BMJ38AR).
             "Amazon": {
                 "url": "https://www.amazon.com.br/Micro-Ondas-32-Cms46Abana-Branco-Consul/dp/B0BL88R1Q8",
                 "preco": 659.00, "em_estoque": True,
+                "preco_original": 891.00, "promo_dias": 7,
                 "imagem": "https://m.media-amazon.com/images/I/51I38-LDDxL._AC_SX679_.jpg",
             },
             # Modelo próximo CMS46AR (mesma capacidade/linha, cor cinza
@@ -1118,10 +1124,13 @@ PRODUTOS_MICROONDAS = [
                 "imagem": "https://images0.kabum.com.br/produtos/fotos/sync_mirakl/162080/Micro-ondas-Panasonic-Nn-st25lwrun-21-Litros-Branco-cinza-110v_1693859294_g.jpg",
             },
             # Amazon — sem JSON-LD, confirmado AO VIVO com Playwright: em
-            # estoque, preço real na página.
+            # estoque. PROMOÇÃO REAL: "De: R$669,00" riscado na página,
+            # de R$669 por R$499 (~25%) — a mais barata entre todas as
+            # lojas desta categoria.
             "Amazon": {
                 "url": "https://www.amazon.com.br/Micro-ondas-Panasonic-NN-ST25LWRUN-Branco-110V/dp/B08JN318M2",
                 "preco": 499.00, "em_estoque": True,
+                "preco_original": 669.00, "promo_dias": 7,
                 "imagem": "https://m.media-amazon.com/images/I/515SGypJAmL._AC_SX679_.jpg",
             },
         },

@@ -1336,6 +1336,33 @@ vários saíram de 1 loja pra 3-4. Verificado com uma query direta no
 banco (contagem de `Price` por produto + `esgotado`/`price_min`) que
 nenhum produto ficou com `price_min = None` ou dado quebrado.
 
+**Correção no mesmo dia — usuário notou que os descontos das lojas
+novas não tinham sido checados** ("voce esqueceu os descontos de novo
+hein"). Certo: a 1ª passada só extraiu `preco`/estoque de cada loja
+nova, sem repetir a checagem de `listPrice`/preço riscado que é padrão
+pra promoções desde a rodada de Geladeiras. Refeito loja por loja:
+
+- **Kabum** (BMJ38AR, BMO45AR, NN-GT68): JSON-LD interno tem
+  `oldPrice`/`discountPercentage` — conferido pra cada um, os 3 vieram
+  `oldPrice: 0`/`discountPercentage: 0` (sem promoção ativa de verdade
+  agora, não é omissão). NN-ST25 (Kabum) tinha `discountPercentage: 15`,
+  mas como já está `em_estoque: False`, não ganha o campo (mesmo
+  critério já usado pro Panasonic NN-GT68/Fast Shop — não faz sentido
+  destacar promoção de algo esgotado).
+- **Bemol** (CMS46AB): JSON-LD com `lowPrice == highPrice` — sem
+  promoção real. MI41S (Bemol) já está esgotada, mesmo critério acima.
+- **Amazon** (MI41S, BMO45AR, CMS46AB, NN-ST25): a Amazon não tem
+  JSON-LD, então essa checagem exige olhar o bloco de preço renderizado
+  (Playwright) — achei **3 promoções reais que tinham passado batido**:
+  MI41S de R$859 por R$749 (~12%), CMS46AB de R$891 por R$659 (~26%,
+  o 2º maior desconto da categoria), NN-ST25 de R$669 por R$499 (~25%).
+  BMO45AR não tem "De:" nenhum na página — preço único, sem promoção.
+
+Reseed de novo: os mesmos 64 preços (nenhuma loja nova, só
+`preco_original` preenchido onde a promoção é real) — 3 ofertas a mais
+agora mostram o selo de desconto que deveriam ter mostrado desde a
+1ª aplicação desta rodada.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
