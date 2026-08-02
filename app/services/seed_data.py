@@ -1,4 +1,4 @@
-"""Dados mockados do ComparaAI (Fase 1: só geladeiras) — usado por `seed.py`.
+"""Dados mockados do ComparAI (Fase 1: só geladeiras) — usado por `seed.py`.
 
 Todo `Price` gravado vem de `lojas_reais` (dado REAL, achado via JSON-LD/
 Playwright, ver comentários pontuais em cada produto) — pedido explícito
@@ -20,11 +20,22 @@ from app.models import Category, PriceHistory, Price, Product, Store, slugify
 
 random.seed(42)
 
+# Usuário pediu pra listar mais categorias (mesmo sem produto nenhum
+# ainda) + um "ver mais" na home pra não poluir a tela com todas de
+# cara — ver home.html. Só "Geladeiras" é `active` (única com produtos
+# de verdade, Fase 1); o resto existe como "em breve" pra já dar uma
+# ideia do catálogo completo planejado.
 CATEGORIAS = [
     {"name": "Geladeiras", "slug": "geladeiras", "icon": "refrigerator", "active": True},
     {"name": "Fogões", "slug": "fogoes", "icon": "flame", "active": False},
     {"name": "Lava-louças", "slug": "lava-loucas", "icon": "utensils", "active": False},
     {"name": "Micro-ondas", "slug": "micro-ondas", "icon": "microwave", "active": False},
+    {"name": "Máquina de Lavar", "slug": "maquina-de-lavar", "icon": "washing-machine", "active": False},
+    {"name": "Ar-condicionado", "slug": "ar-condicionado", "icon": "wind", "active": False},
+    {"name": "Aspirador de Pó", "slug": "aspirador-de-po", "icon": "fan", "active": False},
+    {"name": "Cafeteira", "slug": "cafeteira", "icon": "coffee", "active": False},
+    {"name": "Adega Climatizada", "slug": "adega-climatizada", "icon": "wine", "active": False},
+    {"name": "TV e Som", "slug": "tv-e-som", "icon": "tv", "active": False},
 ]
 
 # Magazine Luiza e Casas Bahia foram REMOVIDAS de propósito (rodada de
@@ -95,6 +106,22 @@ LOJAS = [
         "trust_score": 4.2,
     },
     {
+        # Havan — rede nacional de departamentos (não é um comércio local
+        # de Manaus, por isso "online" e não "física", mesmo critério já
+        # usado pro Carrefour/Angeloni). Magento (não VTEX) — robots.txt
+        # permite, preço/estoque/promoção vêm de microdata schema.org
+        # embutida no HTML (`itemprop="price"/"availability"`, dentro do
+        # bloco `product-info-main` — cuidado: a página também tem blocos
+        # de preço de produtos RELACIONADOS num carrossel `swiper-slide`,
+        # com a mesma estrutura de classe; só o bloco dentro de
+        # `product-info-main` é o produto de verdade).
+        "name": "Havan",
+        "type": Store.TIPO_ONLINE,
+        "website_url": "https://www.havan.com.br",
+        "logo_url": "/static/img/lojas/havan.svg",
+        "trust_score": 4.1,
+    },
+    {
         "name": "Electrolux",
         "type": Store.TIPO_ONLINE,
         "website_url": "https://loja.electrolux.com.br",
@@ -146,8 +173,42 @@ LOJAS = [
     # "Eletro Norte" foi REMOVIDA de vez (era uma loja física FICTÍCIA —
     # nunca existiu de verdade, sem site, sem CNPJ, preço/estoque sempre
     # simulado). Usuário pediu explicitamente "SÓ LOJAS REAIS, SEM
-    # INVENTAR NADA, COM PREÇOS REAIS" — Bemol continua sendo a única
-    # opção de loja física (é real, tem preço/estoque via JSON-LD real).
+    # INVENTAR NADA, COM PREÇOS REAIS" e depois pediu pra pesquisar mais
+    # lojas de Manaus — TVLar e APA Móveis entraram no lugar: são REDES
+    # FÍSICAS DE VERDADE de Manaus (não inventadas), com preço/estoque
+    # real via JSON-LD, finalmente dando pluralidade de loja física de
+    # novo (antes só a Bemol).
+    {
+        # TVLar — 77 lojas (25 em Manaus + 43 interior do Amazonas + 9 em
+        # Roraima), fundada em 1964. VTEX, robots.txt permite, JSON-LD real.
+        "name": "TVLar",
+        "type": Store.TIPO_FISICA,
+        "city": "Manaus",
+        "website_url": "https://www.tvlar.com.br",
+        "logo_url": "/static/img/lojas/tvlar.svg",
+        "trust_score": 4.3,
+    },
+    {
+        # APA Móveis — rede de móveis/eletrodomésticos de Manaus (desde
+        # 2005). robots.txt tem `Disallow: /produtos` só pra listagem SEM
+        # barra, com `Allow: /produtos/` liberando páginas de produto
+        # individual — igual ao padrão já visto em várias lojas VTEX.
+        # JSON-LD real (formato solto: um `Offer` direto no `Product`, sem
+        # aninhamento em AggregateOffer).
+        "name": "APA Móveis",
+        "type": Store.TIPO_FISICA,
+        "city": "Manaus",
+        "website_url": "https://www.apamoveis.com.br",
+        "logo_url": "/static/img/lojas/apa-moveis.svg",
+        "trust_score": 4.0,
+    },
+    # Ramsons e Bigazine (também de Manaus) foram PESQUISADAS mas
+    # descartadas por enquanto — as duas têm catálogo real de geladeiras,
+    # mas toda URL de produto testada (várias tentativas, WebSearch
+    # focado) redirecionava pra uma página de busca genérica ou dava 404
+    # — mesmo padrão de "link indexado que já saiu do ar" já visto com
+    # outras lojas nesta sessão. Sem URL de produto confirmada, não
+    # entram (nunca inventar uma URL só pra preencher).
 ]
 
 # Specs de cada geladeira. Marcas do brief: Electrolux, Brastemp, Consul,
@@ -373,6 +434,13 @@ PRODUTOS = [
                 "url": "https://www.amazon.com.br/Geladeira-Brastemp-Duplex-litros-Branca/dp/B084KLPY1J",
                 "em_estoque": False,
             },
+            # Mesmo modelo BRM44HB na TVLar (rede física de Manaus) —
+            # JSON-LD real, em estoque.
+            "TVLar": {
+                "url": "https://www.tvlar.com.br/geladeira-brastemp-frost-free-duplex-375l-branca-110v-brm44hb/p",
+                "preco": 3675.55, "em_estoque": True,
+                "imagem": "https://tvlar.vtexassets.com/arquivos/ids/19935460/1ptUFjkxBC6keDdyR2eF87aTViTdoVHc.jpg?v=639090016567570000",
+            },
         },
     },
     {
@@ -421,6 +489,19 @@ PRODUTOS = [
             "Amazon": {
                 "url": "https://www.amazon.com.br/Geladeira-Brastemp-Inverse-litros-BRE85AK/dp/B0BVSRSRCW",
                 "em_estoque": False,
+            },
+            # BRE66AK (500L Inverse, mesma linha/classe da nossa BRE80) na
+            # Havan — microdata schema.org real (não JSON-LD script, mas
+            # `itemprop`/`meta` embutidos no HTML do produto principal,
+            # confirmado dentro do bloco `product-info-main`, não um item
+            # de carrossel de "produtos relacionados"): de R$5.499,90 por
+            # R$4.899,90 (~11%, selo "-11%" na própria página), mas
+            # `OutOfStock` — preço real registrado, sem promoção (deixar
+            # de mostrar desconto num item esgotado evita confusão visual,
+            # mesmo critério já usado noutras lojas esgotadas).
+            "Havan": {
+                "url": "https://www.havan.com.br/geladeira-inteligente-smart-brastemp-frost-free-inverse-500l-bre66ak-diversos/p",
+                "preco": 4899.90, "em_estoque": False,
             },
         },
     },
@@ -537,6 +618,24 @@ PRODUTOS = [
             "Amazon": {
                 "url": "https://www.amazon.com.br/Refrigerador-Consul-Litros-CRM50FB-Branca/dp/B0CDXQWPZ7",
                 "em_estoque": False,
+            },
+            # CRM50MB (412L Duplex, praticamente idêntica à nossa CRM50FB
+            # 410L) na Havan — microdata schema.org real, dentro do bloco
+            # `product-info-main` do produto principal (não confundir com
+            # um preço de carrossel de produto relacionado, que a mesma
+            # página também tem, com a mesma estrutura de classe CSS).
+            # `InStock`, sem promoção ativa no momento.
+            "Havan": {
+                "url": "https://www.havan.com.br/geladeira-frost-free-duplex-consul-412l-crm50mb/p",
+                "preco": 3799.90, "em_estoque": True,
+            },
+            # CRM56FBANA (451L Duplex, mesma classe) na APA Móveis (rede
+            # física de Manaus) — JSON-LD real (`Offer` solto, não
+            # aninhado), em estoque.
+            "APA Móveis": {
+                "url": "https://www.apamoveis.com.br/geladeira-duplex-frost-free-painel-eletronico-451l-crm56fbana-127v-branco-consul-p16284",
+                "preco": 4479.00, "em_estoque": True,
+                "imagem": "https://d1likr6vgtxkkw.cloudfront.net/Custom/Content/Products/16/28/16284_geladeira-duplex-frost-free-painel-eletronico-451l-crm56fbana-127v-branco-consul_l1_638731437616435328.webp",
             },
         },
     },
@@ -765,7 +864,7 @@ def popular_lojas() -> list[Store]:
 
 
 def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]) -> list[Product]:
-    loja_bemol = next((l for l in lojas if l.name == "Bemol"), None)
+    lojas_fisicas = [l for l in lojas if l.type == Store.TIPO_FISICA]
 
     produtos = []
     for dados in PRODUTOS:
@@ -800,7 +899,7 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
         lojas_online = [l for l in lojas if l.type == Store.TIPO_ONLINE]
 
         selecionadas = []
-        for nome in ("Amazon", "Carrefour", "Americanas", "Fast Shop", "Kabum", "Angeloni"):
+        for nome in ("Amazon", "Carrefour", "Americanas", "Fast Shop", "Kabum", "Angeloni", "Havan"):
             loja_universal = next((l for l in lojas_online if l.name == nome), None)
             if loja_universal and "preco" in lojas_reais.get(nome, {}):
                 selecionadas.append(loja_universal)
@@ -809,12 +908,14 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
         if loja_da_marca and "preco" in lojas_reais.get(dados["brand"], {}):
             selecionadas.append(loja_da_marca)
 
-        # Bemol é a única loja física do catálogo (real, com preço/estoque
-        # via JSON-LD) — só entra quando tem preço real confirmado pra
-        # esse produto (nunca é a marca LG, que ela comprovadamente não
-        # vende). Não existe mais nenhuma loja física "de preenchimento".
-        if loja_bemol and "preco" in lojas_reais.get("Bemol", {}):
-            selecionadas.append(loja_bemol)
+        # TODAS as lojas físicas com preço real confirmado entram (Bemol,
+        # TVLar, APA Móveis — não é mais só uma escolhida por sorteio/
+        # preenchimento). Um produto pode ter 0, 1 ou várias lojas
+        # físicas, dependendo só de quantas realmente vendem aquele
+        # modelo (ex: nenhuma delas vende LG).
+        for loja_fisica in lojas_fisicas:
+            if "preco" in lojas_reais.get(loja_fisica.name, {}):
+                selecionadas.append(loja_fisica)
 
         for loja in selecionadas:
             dado_real = lojas_reais[loja.name]

@@ -70,7 +70,7 @@ from app import db
 from app.models import Price, PriceHistory
 from config import Config
 
-USER_AGENT = "ComparaAI-PriceBot/1.0 (bot de comparação de preços; contato: configure em atualizacao_precos.py)"
+USER_AGENT = "ComparAI-PriceBot/1.0 (bot de comparação de preços; contato: configure em atualizacao_precos.py)"
 TIMEOUT_SEGUNDOS = 12
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama-3.3-70b-versatile"

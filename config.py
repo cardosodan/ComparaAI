@@ -1,4 +1,4 @@
-"""Configuração central do ComparaAI — lê variáveis de ambiente (.env) e
+"""Configuração central do ComparAI — lê variáveis de ambiente (.env) e
 define os defaults de desenvolvimento local (SQLite), pra trocar por
 Postgres em produção sem tocar em nenhum outro lugar do código (a
 abstração do SQLAlchemy cuida disso, ver README).

@@ -1,4 +1,4 @@
-# ComparaAI
+# ComparAI
 
 Comparador de preços de eletrodomésticos — Fase 1 (MVP): geladeiras, dados
 mockados, rodando localmente. Nome provisório (placeholder), ver seção
@@ -53,7 +53,7 @@ propósito, pra não conflitar com outros projetos locais (BreakTest já usa
 ## Deploy (Railway)
 
 **Por que não GitHub Pages**: Pages só serve arquivo estático (HTML/CSS/
-JS) — o ComparaAI é uma aplicação Flask de verdade (rotas em Python,
+JS) — o ComparAI é uma aplicação Flask de verdade (rotas em Python,
 banco via SQLAlchemy, HTMX dependendo de endpoint no servidor, painel
 admin com POST, script de atualização de preço fazendo requisição pra
 sites externos). Nada disso roda sem um servidor executando código
@@ -1133,6 +1133,87 @@ sendo uma TENDÊNCIA sintética em torno do preço real atual — não temos
 preço histórico capturado dia a dia de verdade, e isso já era
 documentado como simulação (não uma oferta atual fingindo ser real). Se
 o usuário quiser que isso também mude, é um pedido à parte.
+
+## Marca ComparAI + logo grande na home + mais categorias com "ver mais"
+
+Três pedidos numa mesma rodada:
+
+**1. Nome do site**: "ComparaAI" → **"ComparAI"** em todo lugar visível
+(título de todas as páginas, navbar, footer, painel admin) e nos
+comentários/docstrings internos + `USER_AGENT` do scraper
+(`atualizacao_precos.py`). **Não renomeado de propósito**: o repositório
+GitHub (`cardosodan/ComparaAI`) e o caminho da pasta local — são
+identificadores técnicos, não a marca exibida pro usuário, e renomear o
+repo é uma ação bem mais arriscada/irreversível que não foi pedida.
+
+**2. Logo grande e centralizada**: a home nunca teve uma logo de destaque
+— só o wordmark pequeno do navbar (`text-xl`, canto superior esquerdo).
+Adicionado o mesmo wordmark de duas cores ("Compar" + "AI" em destaque),
+só que em `text-6xl sm:text-8xl`, centralizado, como a primeira coisa da
+página — bem acima do H1 existente ("Compare preços..."). Aproveitei pra
+corrigir o footer também, que tinha uma frase desatualizada ("sem preços
+reais ainda", de antes da Fase 1 ganhar dados reais de verdade).
+
+**3. Mais categorias + "ver mais"**: `CATEGORIAS` (seed_data.py) foi de 4
+pra 10 — 6 categorias novas de eletrodomésticos (Máquina de Lavar,
+Ar-condicionado, Aspirador de Pó, Cafeteira, Adega Climatizada, TV e Som),
+todas `active=False` ("em breve", só Geladeiras tem produto de verdade
+ainda). Home (`home.html`): grid mostra as 4 primeiras sempre visíveis +
+botão "Ver mais categorias" (Alpine.js `x-show`/`x-transition`) que
+revela as outras 6. **Efeito colateral corrigido**: a navbar desktop
+itera a MESMA lista (`categorias_nav`, populada uma vez só via context
+processor em `app/__init__.py`) — sem limitar, 10 categorias numa barra
+horizontal de altura fixa quebraria/estouraria a linha. Capado em
+`categorias_nav[:5]` só na navbar desktop (menu mobile e footer, ambos
+verticais, continuam mostrando todas sem problema nenhum).
+
+## Três lojas físicas de Manaus pesquisadas e adicionadas (TVLar, APA Móveis) + Havan nacional — Bigazine/Ramsons descartadas
+
+Usuário pediu pra pesquisar TVLar, Bigazine, Havan, Ramsons e APA Móveis,
+e auditar TODAS as ofertas existentes por promoção/estoque de novo.
+
+**3 de 5 confirmadas com preço real, 2 descartadas**:
+- **TVLar** — rede física de Manaus/Amazonas/Roraima (77 lojas, desde
+  1964), VTEX, robots.txt permite. BRM44HB (Brastemp BRM44) confirmado
+  via JSON-LD: R$3.675,55, em estoque.
+- **APA Móveis** — rede física de Manaus (desde 2005). robots.txt libera
+  página de produto individual (`Allow: /produtos/`, só bloqueia a
+  listagem sem barra). CRM56FBANA (aproximação da nossa Consul CRM50)
+  confirmado via JSON-LD: R$4.479,00, em estoque.
+- **Havan** — rede NACIONAL de departamentos (por isso entrou como
+  "online", mesmo critério já usado pro Carrefour/Angeloni — não é um
+  comércio local). Magento, não VTEX — preço/estoque vêm de microdata
+  schema.org embutida no HTML (`itemprop`), não de um script JSON-LD.
+  **Achado importante ao extrair**: a mesma página tem um bloco de preço
+  pra cada item de um carrossel de "produtos relacionados", com a MESMA
+  estrutura de classe CSS do produto principal — só o bloco dentro de
+  `product-info-main` é confiável; peguei isso a tempo comparando o
+  `data-product-id` com o contexto (imagem/sku logo acima) antes de
+  gravar qualquer número. 2 produtos confirmados: BRE66AK (aproximação da
+  Brastemp BRE80, de R$5.499,90 por R$4.899,90 ~11%, mas `OutOfStock` —
+  gravado sem o desconto, já que não faz sentido destacar promoção de
+  item indisponível) e CRM50MB (aproximação da Consul CRM50, R$3.799,90,
+  em estoque, sem promoção).
+- **Bigazine e Ramsons** (também de Manaus) — catálogo real de geladeiras
+  confirmado por WebSearch, mas **toda URL de produto testada (múltiplas
+  tentativas cada) redirecionava pra página de busca genérica ou dava
+  404** — mesmo padrão de "link indexado que já saiu do ar" visto várias
+  vezes nesta sessão com outras lojas. Descartadas por enquanto — nunca
+  inventar uma URL só pra preencher a lacuna.
+
+`popular_produtos_e_precos` generalizado: antes só a Bemol podia ser
+"a" loja física (`loja_bemol` hardcoded); agora TODAS as lojas físicas
+com preço real confirmado entram (`for loja_fisica in lojas_fisicas`) —
+um produto pode ter 0, 1 ou várias, dependendo só de quantas realmente
+vendem aquele modelo.
+
+**Auditoria completa** (pedido explícito: "averigue TODOS os produtos que
+tem promoções e os que estão esgotados também") — reconferidas as 16
+ofertas de Bemol/Kabum/Angeloni/Samsung que ainda não tinham sido
+checadas nesta sessão (as outras 23 já vinham de rodadas anteriores no
+mesmo dia): **todas as 16 bateram exatamente** com o preço e status de
+estoque já gravados, nenhuma promoção nova encontrada nelas. Reseed final:
+**15 lojas, 39 preços** (era 35).
 
 ## Estrutura
 

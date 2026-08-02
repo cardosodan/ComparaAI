@@ -1,4 +1,4 @@
-"""Modelos de dados do ComparaAI — Passo 2.
+"""Modelos de dados do ComparAI — Passo 2.
 
 Categoria > Produto > Preço (por loja) + Histórico de Preço (série
 temporal, alimenta o gráfico da página de produto). Um `Product` nunca

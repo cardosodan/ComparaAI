@@ -5,7 +5,14 @@
 
 <!-- Hero + busca -->
 <section class="max-w-4xl mx-auto px-4 sm:px-6 pt-16 pb-20 text-center">
-  <h1 class="font-display text-4xl sm:text-5xl font-bold text-ink leading-tight">
+  <!-- Logo grande e centralizada — primeira coisa que aparece na página
+       (pedido explícito do usuário: "bem maior pra identificar de cara").
+       Mesmo wordmark de duas cores do navbar/footer, só que em escala de
+       destaque em vez do tamanho utilitário de barra de navegação. -->
+  <p class="font-display text-6xl sm:text-8xl font-bold text-ink tracking-tight leading-none">
+    Compar<span class="text-accent">AI</span>
+  </p>
+  <h1 class="font-display text-4xl sm:text-5xl font-bold text-ink leading-tight mt-8">
     Compare preços de eletrodomésticos<br class="hidden sm:block"> em segundos
   </h1>
   <p class="mt-4 text-lg text-ink-muted max-w-xl mx-auto">
@@ -53,26 +60,46 @@
 </section>
 
 <!-- Categorias em destaque -->
-<section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
+{% macro cartao_categoria(categoria) %}
+  {% if categoria.active %}
+    <a href="{{ url_for('main.busca', q='geladeira') }}"
+       class="group bg-surface border border-border rounded-2xl p-5 flex flex-col items-center gap-3 text-center
+              hover:border-accent/40 hover:-translate-y-1 transition-all duration-150">
+      <i data-lucide="{{ categoria.icon }}" class="w-8 h-8 text-accent"></i>
+      <span class="text-sm font-semibold text-ink group-hover:text-accent transition-colors">{{ categoria.name }}</span>
+    </a>
+  {% else %}
+    <div class="bg-surface/50 border border-border rounded-2xl p-5 flex flex-col items-center gap-3 text-center opacity-60">
+      <i data-lucide="{{ categoria.icon }}" class="w-8 h-8 text-ink-faint"></i>
+      <span class="text-sm font-semibold text-ink-muted">{{ categoria.name }}</span>
+      <span class="text-[10px] uppercase tracking-wide text-ink-faint -mt-2">Em breve</span>
+    </div>
+  {% endif %}
+{% endmacro %}
+<section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16" x-data="{ expandido: false }">
   <h2 class="font-display text-xl font-bold text-ink mb-5">Categorias</h2>
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-    {% for categoria in categorias_nav %}
-      {% if categoria.active %}
-        <a href="{{ url_for('main.busca', q='geladeira') }}"
-           class="group bg-surface border border-border rounded-2xl p-5 flex flex-col items-center gap-3 text-center
-                  hover:border-accent/40 hover:-translate-y-1 transition-all duration-150">
-          <i data-lucide="{{ categoria.icon }}" class="w-8 h-8 text-accent"></i>
-          <span class="text-sm font-semibold text-ink group-hover:text-accent transition-colors">{{ categoria.name }}</span>
-        </a>
-      {% else %}
-        <div class="bg-surface/50 border border-border rounded-2xl p-5 flex flex-col items-center gap-3 text-center opacity-60">
-          <i data-lucide="{{ categoria.icon }}" class="w-8 h-8 text-ink-faint"></i>
-          <span class="text-sm font-semibold text-ink-muted">{{ categoria.name }}</span>
-          <span class="text-[10px] uppercase tracking-wide text-ink-faint -mt-2">Em breve</span>
-        </div>
-      {% endif %}
+    {% for categoria in categorias_nav[:4] %}
+      {{ cartao_categoria(categoria) }}
     {% endfor %}
   </div>
+
+  {% if categorias_nav|length > 4 %}
+    <div x-show="expandido" x-cloak x-transition class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+      {% for categoria in categorias_nav[4:] %}
+        {{ cartao_categoria(categoria) }}
+      {% endfor %}
+    </div>
+
+    <button
+      type="button"
+      @click="expandido = !expandido"
+      class="mt-6 mx-auto flex items-center gap-1.5 text-sm font-semibold text-accent hover:text-accent-hover transition-colors"
+    >
+      <span x-text="expandido ? 'Ver menos categorias' : 'Ver mais categorias'"></span>
+      <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" :class="expandido ? 'rotate-180' : ''"></i>
+    </button>
+  {% endif %}
 </section>
 
 <!-- Mais buscados -->

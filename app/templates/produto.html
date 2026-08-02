@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "components/product_card.html" import cartao_produto %}
 
-{% block title %}{{ produto.name }} — ComparaAI{% endblock %}
+{% block title %}{{ produto.name }} — ComparAI{% endblock %}
 {% block meta_description %}{{ produto.name }}: compare o preço em {{ ofertas|length }} loja{{ "s" if ofertas|length != 1 else "" }} (online e física) e veja o histórico de preço dos últimos 30 dias.{% endblock %}
 
 {% block content %}

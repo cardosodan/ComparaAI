@@ -1,12 +1,15 @@
 <header x-data="{ menuAberto: false }" class="sticky top-0 z-50 bg-surface/95 backdrop-blur border-b border-border">
   <nav class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
     <a href="{{ url_for('main.index') }}" class="font-display text-xl font-bold text-ink shrink-0">
-      Compara<span class="text-accent">AI</span>
+      Compar<span class="text-accent">AI</span>
     </a>
 
-    <!-- Categorias — desktop -->
+    <!-- Categorias — desktop (só as 5 primeiras: a barra é horizontal e de
+         altura fixa, com muito mais categorias no catálogo agora o resto
+         quebraria/estouraria a linha — a lista completa continua no menu
+         mobile abaixo e na home, que rolam verticalmente sem esse limite). -->
     <ul class="hidden md:flex items-center gap-6">
-      {% for categoria in categorias_nav %}
+      {% for categoria in categorias_nav[:5] %}
         <li>
           {% if categoria.active %}
             <a href="#" class="text-sm font-medium text-ink hover:text-accent transition-colors">

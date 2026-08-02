@@ -1,4 +1,4 @@
-"""App factory do ComparaAI — cria e configura a instância do Flask.
+"""App factory do ComparAI — cria e configura a instância do Flask.
 
 Padrão de fábrica (`create_app`) em vez de uma instância global de módulo:
 permite criar múltiplas instâncias configuradas de forma diferente (ex.
