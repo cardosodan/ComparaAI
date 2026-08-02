@@ -726,6 +726,46 @@ redireciona pro login; senha errada → fica de fora; senha certa → entra;
 logout → tranca de novo. `/admin/precos` (rota antiga) agora dá 404, como
 esperado.
 
+## Auditoria Bemol + Samsung na loja errada + Americanas (mais opções) + fim do bug de homepage de vez
+
+Usuário reportou o Carrefour caindo em homepage num produto (Electrolux
+DF44 — corrigido, achei URL real com busca focada no formato canônico
+`/produto/{slug}-{id}`) e pediu pra auditar a Bemol do mesmo jeito, além
+de "mais opções de lugares para comprar".
+
+- **Bemol auditada**: achei o mesmo tipo de bug nos 2 produtos LG (Bemol
+  sorteada como loja física por sorteio, sem dado real — cai na homepage
+  dela, dando a entender que "talvez venda" quando já sabíamos que não
+  vende LG). Corrigido: LG nunca mais sorteia Bemol como opção física, só
+  Eletro Norte (que já mostra "Sem site" honestamente).
+- **Achado sobre a Samsung, sem querer**: pesquisando mais lojas, o
+  domínio `shop.samsung.com` apareceu repetido nos resultados — é a LOJA
+  de verdade da Samsung (também VTEX, JSON-LD **estático**), diferente de
+  `www.samsung.com` (site institucional/marketing, precisava de
+  Playwright pra ver o preço). Troquei as 2 entradas da Samsung pra usar
+  `shop.samsung.com` — preço/estoque real sem precisar de navegador
+  headless nenhum, mais simples e mais confiável que a solução anterior.
+- **Americanas adicionada** — testada antes (robots.txt limpo, sem
+  bloqueio de bot de IA como o Mercado Livre tinha) e com bom catálogo:
+  achei dado real (JSON-LD, `offers` em formato de lista — é marketplace,
+  vários vendedores por produto, usei sempre o mais barato) pra 7 dos 10
+  produtos.
+- **Correção estrutural pra nunca mais cair em homepage**: em vez de
+  sempre incluir Carrefour/Americanas em TODO produto (o que gerava
+  exatamente o bug relatado sempre que faltasse dado real pra algum),
+  `popular_produtos_e_precos()` agora só inclui essas duas quando JÁ
+  existe uma URL real confirmada pra aquele produto específico — a Amazon
+  continua sempre incluída (busca sempre funciona, não depende de achar
+  URL nenhuma). Isso garante, na estrutura do código, que nenhuma oferta
+  dessas duas caia em homepage — nem hoje, nem se um produto novo entrar
+  no catálogo no futuro sem alguém lembrar de pesquisar o Carrefour/
+  Americanas pra ele.
+
+Confirmado com curl nos 10 produtos: zero links "nus" pra homepage do
+Carrefour/Americanas sobrando; toda oferta mostrada tem link real
+(Amazon/Carrefour/Americanas/loja da marca/Bemol) ou estado honesto
+("Esgotado"/"Sem site") quando não tem.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo

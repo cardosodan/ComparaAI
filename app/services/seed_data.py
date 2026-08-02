@@ -51,6 +51,13 @@ LOJAS = [
         "trust_score": 4.3,
     },
     {
+        "name": "Americanas",
+        "type": Store.TIPO_ONLINE,
+        "website_url": "https://www.americanas.com.br",
+        "logo_url": "/static/img/lojas/americanas.svg",
+        "trust_score": 4.2,
+    },
+    {
         "name": "Electrolux",
         "type": Store.TIPO_ONLINE,
         "website_url": "https://loja.electrolux.com.br",
@@ -72,9 +79,15 @@ LOJAS = [
         "trust_score": 4.6,
     },
     {
+        # shop.samsung.com (não www.samsung.com — esse é o site
+        # institucional/marketing, carregado por JS, o mesmo tipo de
+        # limitação que a Electrolux tinha com www. vs loja.). A LOJA de
+        # verdade é shop.samsung.com, também VTEX, com JSON-LD estático —
+        # achada via WebSearch depois de ver esse domínio aparecer
+        # repetidamente em buscas por produtos Samsung noutras lojas.
         "name": "Samsung",
         "type": Store.TIPO_ONLINE,
-        "website_url": "https://www.samsung.com/br",
+        "website_url": "https://shop.samsung.com/br",
         "logo_url": "/static/img/lojas/samsung.svg",
         "trust_score": 4.7,
     },
@@ -173,6 +186,13 @@ PRODUTOS = [
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/produto/geladeirarefrigerador-frost-free-electrolux-dfn-litros-branco-244624",
             },
+            # Mesmo modelo DFN41 na Americanas — JSON-LD real (marketplace,
+            # vários vendedores por produto; usei o preço do 1º vendedor
+            # listado).
+            "Americanas": {
+                "url": "https://www.americanas.com.br/geladeira-electrolux-371-litros-frost-free-branco-dfn41-127v--h17i38691a352141/p",
+                "preco": 3399.99, "em_estoque": False,
+            },
         },
     },
     {
@@ -200,6 +220,11 @@ PRODUTOS = [
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-electrolux-frost-free-inverter-490l-inverse-inox-look-ib7s-mp955042852/p",
             },
+            # Mesmo modelo IB7S na Americanas — JSON-LD achado, mas também
+            # com "price": 0 (mesmo problema de catálogo). Só `url`.
+            "Americanas": {
+                "url": "https://www.americanas.com.br/geladeira-electrolux-frost-free-inverter-490l-inverse-inox-look-ib7s-7489466541/p",
+            },
         },
     },
     {
@@ -224,6 +249,12 @@ PRODUTOS = [
                 "url": "https://carrefour.com.br/geladeira-brastemp-frost-free-duplex-375-litros-com-compartimento-extrafrio-brm44hb-110v-5299802/p",
                 "preco": 2848.39, "em_estoque": True,
                 "imagem": "https://carrefourbr.vtexassets.com/arquivos/ids/181487971/image-0.jpg?v=638935408554630000",
+            },
+            # Mesmo modelo BRM44HB na Americanas — JSON-LD real (marketplace,
+            # preço do vendedor mais barato entre os listados).
+            "Americanas": {
+                "url": "https://www.americanas.com.br/geladeira-brastemp-375-litros-frost-free-duplex-branco-brm44hb-220v-173b869f134f5194/p",
+                "preco": 2749.00, "em_estoque": True,
             },
         },
     },
@@ -250,6 +281,11 @@ PRODUTOS = [
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-brastemp-frost-free-inverse-588-litros-cor-inox-com-smart-bar-bre85ak-220v-mp929716281/p",
             },
+            # Mesmo modelo BRE85AK na Americanas — JSON-LD achado, mas
+            # também com "price": 0 (mesmo problema de catálogo). Só `url`.
+            "Americanas": {
+                "url": "https://www.americanas.com.br/geladeira-frost-free-inverse-2-portas-588-litros-bre85ak-brastemp-7462033239/p",
+            },
         },
     },
     {
@@ -274,6 +310,12 @@ PRODUTOS = [
                 "url": "https://www.carrefour.com.br/geladeira-consul-frost-free-342-litros-branca-com-gavetao-hortifruti-crb39ab-110v-8950121/p",
                 "preco": 3187.00, "em_estoque": True,
                 "imagem": "https://carrefourbr.vtexassets.com/arquivos/ids/181487971/image-0.jpg?v=638935408554630000",
+            },
+            # Mesmo modelo CRB39AB na Americanas — JSON-LD real (marketplace,
+            # preço do vendedor mais barato listado).
+            "Americanas": {
+                "url": "https://www.americanas.com.br/geladeira-consul-342-litros-frost-free-branco-crb39ab-127v-173g9z552j157793/p",
+                "preco": 2499.00, "em_estoque": True,
             },
         },
     },
@@ -300,6 +342,11 @@ PRODUTOS = [
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-consul-crm50fb-frost-free-duplex-410l-mp934406719/p",
             },
+            # Mesmo modelo CRM50FB na Americanas — JSON-LD achado, mas
+            # também com "price": 0 (mesmo problema de catálogo). Só `url`.
+            "Americanas": {
+                "url": "https://www.americanas.com.br/geladeira-consul-frost-free-duplex-com-espaco-flex-410l-branca-crm50fb-7512217016/p",
+            },
         },
     },
     {
@@ -313,22 +360,20 @@ PRODUTOS = [
                 "preco": 3959.00, "em_estoque": True,
                 "imagem": "https://bemol.vtexassets.com/arquivos/ids/398739/240859.jpg?v=639105809594570000",
             },
-            # Site da Samsung carrega preço/estoque via JavaScript (nenhum
-            # dado estático via requests/curl) — resolvido com Playwright
-            # (navegador headless de verdade, executa o JS) em vez de
-            # tentar burlar proteção nenhuma: a Samsung não bloqueia
-            # automação, só carrega o preço depois do carregamento inicial.
-            # Preço + "Avise-me quando chegar" (= esgotado) extraídos de
-            # verdade da página renderizada. Sem og:image específico aqui
-            # (só o logo genérico da Samsung), então sem `imagem`.
+            # ACHADO IMPORTANTE: www.samsung.com (usado numa rodada anterior,
+            # via Playwright) é só o site institucional/marketing, carregado
+            # por JS — a LOJA de verdade é shop.samsung.com (também VTEX,
+            # achada via WebSearch depois de aparecer repetida em buscas de
+            # produto Samsung noutras lojas), com JSON-LD ESTÁTICO — nem
+            # precisa de Playwright pra essa. "Evolution RT46 POWERvolt"
+            # bate exato com o nosso model "RT46".
             "Samsung": {
-                "url": "https://www.samsung.com/br/refrigerators/bottom-mount-freezer/rb6000d-462l-refined-inox-rb50dg6020s9az/",
-                "preco": 6735.79, "em_estoque": False,
+                "url": "https://shop.samsung.com/br/geladeira-samsung-evolution-rt46-com-powervolt-inverter-duplex-460l/p",
+                "preco": 4786.17, "em_estoque": False,
+                "imagem": "https://samsungbrshop.vtexassets.com/arquivos/ids/225589/1.jpg?v=638369774580530000",
             },
-            # RT46K6A4KS9 (linha "RT6000K") — bate ainda melhor com o nosso
-            # model "RT46" (prefixo idêntico) que o RB50DG6020S9AZ usado no
-            # site da Samsung acima. Achada no Carrefour — JSON-LD achado,
-            # mas com "price": 0 (mesmo problema de catálogo). Só `url`.
+            # Achada no Carrefour — JSON-LD achado, mas com "price": 0
+            # (mesmo problema de catálogo). Só `url`.
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-samsung-evolution-rt46-com-powervolt-inverter-duplex-460l-inox-look-bivolt-mp929908731/p",
             },
@@ -346,12 +391,12 @@ PRODUTOS = [
                 "imagem": "https://bemol.vtexassets.com/arquivos/ids/409223/241162.jpg?v=639093422531800000",
             },
             # RF22R7351SR (501L French Door) bate exato com a capacidade da
-            # nossa RF50. Preço + estoque extraídos via Playwright (ver
-            # comentário na RT46 acima) — real, não simulado.
+            # nossa RF50 — em shop.samsung.com (a LOJA de verdade, JSON-LD
+            # estático, ver comentário na RT46 acima), não www.samsung.com.
             "Samsung": {
-                "url": "https://www.samsung.com/br/refrigerators/french-door/501l-real-sts-rf22r7351sr-az/",
-                "preco": 26137.00, "em_estoque": False,
-                "imagem": "https://stg-images.samsung.com/is/image/samsung/br-ref-fdsr-rf22r7351sraz-rf22r7351sr-az-frontsilver-thumb-185294248",
+                "url": "https://shop.samsung.com/br/geladeira-french-door-rf22r-inox-com-food-showcase-e-gaveta-flexzone-501-l/p",
+                "preco": 22999.00, "em_estoque": False,
+                "imagem": "https://samsungbrshop.vtexassets.com/arquivos/ids/174245/RF22R7351SRAZ_1.jpg?v=637360483544270000",
             },
             # Mesmo modelo RF22R7351SR no Carrefour — JSON-LD achado, mas
             # com "price": 0 (mesmo problema de catálogo). Só `url`.
@@ -386,6 +431,11 @@ PRODUTOS = [
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-lg-2-portas-frost-free-inverter-395l-duplex-inox-look-110v-gnb392plmb-3376389/p",
                 "preco": 3156.84, "em_estoque": True,
+            },
+            # Modelo próximo (GN-B392PLM) na Americanas — JSON-LD achado,
+            # mas com "price": 0 (mesmo problema de catálogo). Só `url`.
+            "Americanas": {
+                "url": "https://www.americanas.com.br/geladeira-lg-frost-free-inverter-395l-duplex-inox-look-gn-b392plm-220v-17592d4yo3629823/p",
             },
         },
     },
@@ -466,17 +516,30 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
         db.session.add(produto)
         produtos.append(produto)
 
-        # Lojas online "universais" (Amazon, Carrefour) entram em TODO
-        # produto, comparando o máximo de ofertas possível (pedido do
-        # usuário: "quero que todos os produtos estejam com todos os links
-        # de todas as marcas funcionando"). A loja "da marca" (Electrolux/
-        # Brastemp/Consul/Samsung/LG) só entra no produto DAQUELA marca —
-        # não faria sentido a Consul aparecer vendendo uma geladeira
-        # Samsung. + 1 loja física, igual sempre.
+        # Lojas online "universais" (Amazon, Carrefour, Americanas) —
+        # comparar o máximo de ofertas possível é o pedido do usuário
+        # ("quero que todos os produtos estejam com todos os links de
+        # todas as marcas funcionando" + depois "eu queria ter mais opções
+        # de lugares para comprar"), MAS Carrefour/Americanas só têm dado
+        # real pra ALGUNS produtos (WebSearch não achou tudo) — incluir
+        # elas em produto SEM entrada real repetiria o mesmo bug corrigido
+        # 2x nesta sessão (Carrefour no Electrolux DF44, Bemol no LG): sem
+        # `Price.url`, a oferta cai no fallback de HOMEPAGE, que parece um
+        # link quebrado/sem sentido pro usuário. Por isso, diferente da
+        # Amazon (busca sempre funciona, entra sempre), Carrefour/
+        # Americanas só entram no produto onde JÁ existe uma URL real
+        # confirmada em `lojas_reais` — garante estruturalmente que
+        # NENHUMA oferta dessas duas caia em homepage, mesmo pra produto
+        # futuro que eu esqueça de pesquisar.
         lojas_online = [l for l in lojas if l.type == Store.TIPO_ONLINE]
         lojas_fisicas = [l for l in lojas if l.type == Store.TIPO_FISICA]
 
-        selecionadas = [l for l in lojas_online if l.name in ("Amazon", "Carrefour")]
+        selecionadas = []
+        for nome in ("Amazon", "Carrefour", "Americanas"):
+            loja_universal = next((l for l in lojas_online if l.name == nome), None)
+            if loja_universal and (nome == "Amazon" or nome in lojas_reais):
+                selecionadas.append(loja_universal)
+
         loja_da_marca = next((l for l in lojas_online if l.name == dados["brand"]), None)
         if loja_da_marca:
             selecionadas.append(loja_da_marca)
