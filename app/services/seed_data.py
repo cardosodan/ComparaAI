@@ -283,12 +283,16 @@ PRODUTOS = [
                 "imagem": "https://bemol.vtexassets.com/arquivos/ids/398739/240859.jpg?v=639105809594570000",
             },
             # Site da Samsung carrega preço/estoque via JavaScript (nenhum
-            # dado estático disponível) — só URL real (RB50DG6020S9AZ, 462L,
-            # a bottom-freezer mais próxima da nossa RT46/460L). Essa página
-            # também não tinha og:image específico (só o logo genérico da
-            # Samsung), então sem `imagem` aqui de propósito.
+            # dado estático via requests/curl) — resolvido com Playwright
+            # (navegador headless de verdade, executa o JS) em vez de
+            # tentar burlar proteção nenhuma: a Samsung não bloqueia
+            # automação, só carrega o preço depois do carregamento inicial.
+            # Preço + "Avise-me quando chegar" (= esgotado) extraídos de
+            # verdade da página renderizada. Sem og:image específico aqui
+            # (só o logo genérico da Samsung), então sem `imagem`.
             "Loja Oficial da Marca": {
                 "url": "https://www.samsung.com/br/refrigerators/bottom-mount-freezer/rb6000d-462l-refined-inox-rb50dg6020s9az/",
+                "preco": 6735.79, "em_estoque": False,
             },
             # RT46K6A4KS9 (linha "RT6000K") — bate ainda melhor com o nosso
             # model "RT46" (prefixo idêntico) que o RB50DG6020S9AZ usado no
@@ -313,10 +317,11 @@ PRODUTOS = [
                 "imagem": "https://bemol.vtexassets.com/arquivos/ids/409223/241162.jpg?v=639093422531800000",
             },
             # RF22R7351SR (501L French Door) bate exato com a capacidade da
-            # nossa RF50. Preço/estoque via JS (ver comentário acima) — só
-            # URL + imagem (og:image) reais.
+            # nossa RF50. Preço + estoque extraídos via Playwright (ver
+            # comentário na RT46 acima) — real, não simulado.
             "Loja Oficial da Marca": {
                 "url": "https://www.samsung.com/br/refrigerators/french-door/501l-real-sts-rf22r7351sr-az/",
+                "preco": 26137.00, "em_estoque": False,
                 "imagem": "https://stg-images.samsung.com/is/image/samsung/br-ref-fdsr-rf22r7351sraz-rf22r7351sr-az-frontsilver-thumb-185294248",
             },
             # Achadas via WebSearch, mesmo modelo RF22R7351SR (só `url`).
@@ -336,8 +341,14 @@ PRODUTOS = [
         # Sem entrada "Bemol" de propósito — LG não aparece no catálogo dela
         # (~80 sitemaps verificados, ver histórico acima). GN-B392PQWB
         # (395L Duplex) achado direto no site oficial da LG via busca —
-        # preço/estoque também via JS lá (mesmo caso de Samsung), só URL +
-        # imagem (og:image) reais.
+        # preço/estoque também via JS lá (mesmo caso de Samsung). DIFERENTE
+        # da Samsung, porém: tentei resolver com Playwright (mesma técnica
+        # que funcionou pra Samsung) e o site da LG bloqueou com 403 via
+        # Akamai (proteção anti-bot de verdade, mesma categoria de Magazine
+        # Luiza/Casas Bahia) — só não bloqueou minhas requisições `requests`/
+        # curl simples usadas na busca inicial. Não insisti (mesma decisão
+        # de não tentar burlar proteção nenhuma) — só URL + imagem
+        # (og:image) reais, preço/estoque continuam simulados.
         "lojas_reais": {
             "Loja Oficial da Marca": {
                 "url": "https://www.lg.com/br/geladeiras/geladeiras-duplex/gn-b392pqwb/",

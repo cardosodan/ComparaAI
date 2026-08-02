@@ -3,7 +3,7 @@ busca a página real de cada oferta (Price.url) e extrai preço/estoque/
 imagem de lá — o painel admin (Passo 8) vira só um recurso de EMERGÊNCIA,
 não a fonte principal.
 
-Duas estratégias de extração, nessa ordem de preferência:
+Três estratégias de extração, nessa ordem de preferência:
 
 1. **Dados estruturados (JSON-LD/schema.org)**: muita loja (confirmado
    testando contra uma página REAL da Bemol) já publica um bloco
@@ -11,31 +11,53 @@ Duas estratégias de extração, nessa ordem de preferência:
    disponibilidade e imagem exatos, sem ambiguidade nenhuma. Quando isso
    existe, é sempre preferível: instantâneo, de graça, sem depender de
    IA nenhuma pra "adivinhar" o preço num texto solto.
-2. **Groq (LLM) como fallback**, só quando o site não publica esse
-   schema. Importante ser honesto sobre o que isso é: a Groq sozinha NÃO
-   navega na internet — ela é uma API de inferência sobre um modelo já
-   treinado, sem acesso à web ao vivo por conta própria. O fluxo real é:
-   este módulo busca a página de verdade via HTTP (`requests`),
-   respeitando o `robots.txt` do site antes de tentar, e só DEPOIS manda
-   o texto já extraído da página pra Groq — que funciona aqui como um
-   "parser inteligente" (mais resistente a mudança de layout que um
-   scraper de seletor CSS fixo), não como substituto da busca em si.
+2. **Playwright (navegador headless de verdade)**, quando o site não
+   publica JSON-LD. Confirmado pra Samsung/LG: o HTML bruto que
+   `requests` recebe não tem preço NENHUM (nem em JSON-LD nem em texto
+   solto) porque o preço só é preenchido por uma chamada de API que o
+   JAVASCRIPT do navegador faz depois do carregamento inicial — isso não
+   é proteção nenhuma, é só o jeito que o site foi construído, então
+   resolver com um navegador de verdade (que executa o JS igual um
+   usuário normal) é legítimo, não é burlar nada. Extrai preço/estoque
+   do texto visível da página já renderizada (regex procurando "R$" +
+   sinais de indisponibilidade tipo "avise-me quando chegar").
+3. **Groq (LLM) como último fallback**, quando nem JSON-LD nem
+   Playwright acham nada (site bloqueou os dois, ou o texto não tem
+   preço reconhecível). Importante ser honesto sobre o que isso é: a
+   Groq sozinha NÃO navega na internet — ela é uma API de inferência
+   sobre um modelo já treinado, sem acesso à web ao vivo por conta
+   própria. O fluxo real é: este módulo busca a página de verdade via
+   HTTP (`requests`), respeitando o `robots.txt` do site antes de
+   tentar, e só DEPOIS manda o texto já extraído da página pra Groq —
+   que funciona aqui como um "parser inteligente" (mais resistente a
+   mudança de layout que um scraper de seletor CSS fixo), não como
+   substituto da busca em si.
 
-Limitação conhecida: muitos e-commerces proíbem scraping automatizado nos
-próprios Termos de Uso, e alguns bloqueiam ativamente esse tipo de acesso
-— testado contra os 6 sites do seed: Magazine Luiza e Casas Bahia
-retornam 403 (bloqueio de bot) até pra buscar o próprio robots.txt;
-Amazon e Bemol permitem. Este módulo respeita robots.txt e se identifica
-honestamente (User-Agent próprio, não finge ser navegador) — mas isso
-não é garantia legal de que TODO site aqui permite a prática; a fonte
-mais segura de verdade continua sendo um programa de afiliados oficial
-(Amazon Associates, Awin, Lomadee), como já documentado no brief
-original. Ver seção "Atualização automática de preços" do README antes
-de apontar isso pra um site novo.
+Limitação conhecida, e onde a linha é traçada: muitos e-commerces
+proíbem scraping automatizado nos próprios Termos de Uso, e alguns
+bloqueiam ativamente esse tipo de acesso — testado contra os 6 sites do
+seed (mais o site oficial de cada marca): Magazine Luiza e Casas Bahia
+retornam 403 (bloqueio de bot) até pra buscar o próprio robots.txt; o
+site da LG deixa `requests`/curl passar mas bloqueia um Chromium
+headless de verdade com 403 via Akamai (confirmado testando — mesmo
+navegador sem NENHUM disfarce, só rodando headless); Amazon, Bemol,
+Brastemp, Consul, Electrolux e Samsung permitem os dois. **Este módulo
+não tenta burlar bloqueio nenhum** — nem com Playwright, nem com nada
+mais (sem stealth plugins, sem rotação de proxy, sem spoofing de
+fingerprint): quando um site bloqueia de propósito, a função de extração
+correspondente simplesmente devolve `None` e o fluxo desiste daquela
+oferta. Ele respeita robots.txt e se identifica honestamente
+(User-Agent próprio, não finge ser navegador) — mas isso não é garantia
+legal de que TODO site aqui permite a prática; a fonte mais segura de
+verdade continua sendo um programa de afiliados oficial (Amazon
+Associates, Awin, Lomadee), como já documentado no brief original. Ver
+seção "Atualização automática de preços" do README antes de apontar
+isso pra um site novo.
 """
 from __future__ import annotations
 
 import json
+import re
 import time
 import urllib.robotparser
 from datetime import datetime
@@ -148,6 +170,53 @@ def extrair_de_jsonld(sopa: BeautifulSoup) -> dict | None:
     return None
 
 
+_SINAIS_DE_ESGOTADO = ("avise-me", "indispon", "esgotado", "fora de estoque", "sem estoque")
+
+
+def extrair_via_playwright(url: str) -> dict | None:
+    """Fallback pra sites sem JSON-LD onde o HTML bruto (`requests`) não
+    tem preço nenhum — o preço só existe depois de uma chamada de API que
+    o JAVASCRIPT do navegador faz, invisível pra qualquer requisição HTTP
+    simples. Abre um Chromium headless de verdade, SEM nenhum disfarce
+    (não esconde `navigator.webdriver`, não spoofa fingerprint, não usa
+    proxy) — resolve o problema pra sites que só têm essa limitação
+    técnica (confirmado: Samsung), mas devolve `None` de propósito quando
+    o site bloqueia a automação de verdade (confirmado: LG bloqueia isso
+    com 403 via Akamai, mesma categoria de proteção que já bloqueia
+    Magazine Luiza/Casas Bahia mesmo com `requests` simples) — nesse caso
+    o chamador cai pro próximo fallback (Groq) em vez de insistir."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        print("[atualizacao_precos] Playwright não instalado — pulando esse fallback.")
+        return None
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            resposta = page.goto(url, timeout=30000, wait_until="domcontentloaded")
+            if resposta is None or resposta.status >= 400:
+                browser.close()
+                return None
+            page.wait_for_timeout(5000)  # tempo pro JS da página buscar/renderizar o preço
+            texto = page.inner_text("body")
+            browser.close()
+    except Exception as erro:
+        print(f"[atualizacao_precos] Playwright falhou em {url}: {erro}")
+        return None
+
+    match_preco = re.search(r"R\$\s?([\d.]+,\d{2})", texto)
+    if not match_preco:
+        return None
+
+    preco_valor = float(match_preco.group(1).replace(".", "").replace(",", "."))
+    janela = texto[match_preco.end():match_preco.end() + 150].lower()
+    em_estoque = not any(sinal in janela for sinal in _SINAIS_DE_ESGOTADO)
+
+    return {"preco": preco_valor, "em_estoque": em_estoque, "imagem_url": None}
+
+
 def extrair_com_groq(sopa: BeautifulSoup, produto_nome: str) -> dict | None:
     """Fallback pra quando o site não publica JSON-LD de Product —
     manda o TEXTO visível (remove <script>/<style>, sem isso o HTML bruto
@@ -197,22 +266,30 @@ def extrair_com_groq(sopa: BeautifulSoup, produto_nome: str) -> dict | None:
 
 
 def atualizar_oferta(preco: Price) -> bool:
-    """Busca a página UMA VEZ + extrai (JSON-LD primeiro, Groq como
-    fallback) + grava no banco (Price atual + novo ponto de
-    PriceHistory). Devolve True/False (sucesso/falha) pro script de lote
-    poder contar/logar."""
+    """Busca a página (JSON-LD primeiro, Playwright depois, Groq como
+    último fallback — ver docstring do módulo) + grava no banco (Price
+    atual + novo ponto de PriceHistory). Devolve True/False (sucesso/
+    falha) pro script de lote poder contar/logar."""
     if not preco.url or preco.url == "#":
         return False
 
     sopa = buscar_pagina(preco.url)
-    if sopa is None:
-        return False
 
-    dados = extrair_de_jsonld(sopa)
+    dados = extrair_de_jsonld(sopa) if sopa is not None else None
     origem = "JSON-LD"
+
     if dados is None:
+        # Playwright faz sua PRÓPRIA navegação (não reaproveita `sopa`,
+        # que veio de `requests` sem executar JS nenhum) — só tenta se o
+        # robots.txt permitir, mesma regra de `buscar_pagina` acima.
+        if pode_buscar(preco.url):
+            dados = extrair_via_playwright(preco.url)
+            origem = "Playwright"
+
+    if dados is None and sopa is not None:
         dados = extrair_com_groq(sopa, preco.product.name)
         origem = "Groq"
+
     if dados is None:
         return False
 

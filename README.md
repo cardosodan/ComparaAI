@@ -39,6 +39,10 @@ copy .env.example .env
 # baixe o Tailwind CLI standalone (~110MB, não versionado no git — ver .gitignore)
 Invoke-WebRequest -Uri "https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-windows-x64.exe" -OutFile "tools\tailwindcss.exe"
 
+# só necessário se for RODAR atualizacao_precos.py (script separado, não o
+# site em si) — baixa o navegador do Playwright, ver seção "Playwright" abaixo
+python -m playwright install chromium
+
 python run.py
 ```
 
@@ -79,6 +83,15 @@ repo, sem precisar mexer em mais nada):
   está versionada no git — o binário `tools/tailwindcss.exe` é só uma
   ferramenta de desenvolvimento local (Windows), não precisa rodar (nem
   rodaria) no servidor Linux do Railway.
+- **`playwright` não precisa do navegador instalado no Railway**: o site
+  em si (o que o Railway serve) nunca chama Playwright — só o script
+  separado `atualizacao_precos.py`/`atualizar_precos.py` usa, e esse
+  continua rodando localmente (Windows Task Scheduler, ver seção
+  própria), nunca no servidor. O pacote Python está no
+  `requirements.txt` só porque `atualizacao_precos.py` faz `import` dele
+  (lazy, dentro da função) — sem o binário do Chromium instalado, essa
+  função específica simplesmente devolve `None` e o resto do site
+  funciona normal.
 
 **Passo a passo**:
 1. Suba o repo pro GitHub (se ainda não estiver).
@@ -317,21 +330,76 @@ Decisão de produto do usuário, no meio da Fase 1: o painel admin (Passo 8)
 deve ser só um recurso de **emergência**, não a fonte principal de preço —
 preço e foto de verdade devem vir automaticamente das próprias lojas que o
 site linka. `app/services/atualizacao_precos.py` implementa isso com uma
-estratégia em 2 camadas:
+estratégia em 3 camadas:
 
 1. **Dados estruturados (JSON-LD/schema.org) primeiro** — muita loja já
    publica um bloco `<script type="application/ld+json">` com
    `@type: Product` (preço, disponibilidade, imagem) pra SEO. Quando existe,
    é sempre preferível: instantâneo, de graça, sem IA nenhuma envolvida.
-2. **Groq (LLM) como fallback**, só quando o site não publica esse schema.
-   **Importante ser honesto sobre o que isso é**: a Groq sozinha NÃO navega
-   na internet — é uma API de inferência sobre um modelo já treinado, sem
-   acesso à web ao vivo por conta própria. O fluxo real é: este módulo busca
-   a página via HTTP (`requests`, respeitando `robots.txt` antes de
-   qualquer tentativa) e só DEPOIS manda o texto extraído pra Groq, que
-   funciona como um "parser inteligente" — mais resistente a mudança de
-   layout do site que um scraper de seletor CSS fixo, mas não substitui a
-   busca em si.
+2. **Playwright (navegador headless de verdade)**, quando o site não publica
+   JSON-LD. Ver seção "Playwright" abaixo — resolve sites que só carregam
+   preço via JavaScript, mas devolve `None` de propósito quando o site
+   bloqueia automação de verdade (não tenta burlar proteção nenhuma).
+3. **Groq (LLM) como último fallback**, quando nem JSON-LD nem Playwright
+   acham nada. **Importante ser honesto sobre o que isso é**: a Groq sozinha
+   NÃO navega na internet — é uma API de inferência sobre um modelo já
+   treinado, sem acesso à web ao vivo por conta própria. O fluxo real é:
+   este módulo busca a página via HTTP (`requests`, respeitando
+   `robots.txt` antes de qualquer tentativa) e só DEPOIS manda o texto
+   extraído pra Groq, que funciona como um "parser inteligente" — mais
+   resistente a mudança de layout do site que um scraper de seletor CSS
+   fixo, mas não substitui a busca em si.
+
+### Playwright — resolve JS, nunca bloqueio (pedido do usuário)
+
+Usuário perguntou se alguma IA/ferramenta resolvia URL+preço+estoque
+mesmo nos sites que bloqueiam (Magazine Luiza, Casas Bahia). Distinção
+importante que motivou essa seção: **JS-rendering não é a mesma coisa
+que bloqueio ativo**, e só o primeiro tem solução legítima.
+
+- **Samsung — resolvido de verdade**: o site não bloqueia nada, só
+  carrega preço/estoque via chamada de API feita pelo JAVASCRIPT do
+  navegador (por isso `requests`/curl nunca viam nenhum "R$" no HTML).
+  Um Chromium headless comum (Playwright, sem NENHUM disfarce — não
+  esconde `navigator.webdriver`, não spoofa fingerprint) renderiza a
+  página igual um usuário normal e o preço aparece no texto visível.
+  Testado ao vivo nos 2 produtos Samsung do seed: RT46 (RB50DG6020S9AZ)
+  R$ 6.735,79 e RF50 (RF22R7351SR) R$ 26.137,00, ambos "Avise-me quando
+  chegar" = esgotado — dado real, gravado em `seed_data.py`.
+- **LG — testado, bloqueado de verdade, não insisti**: mesma tentativa
+  com Playwright bateu em 403 via Akamai (a mesma categoria de proteção
+  anti-bot que já bloqueava Magazine Luiza/Casas Bahia) — mesmo sem
+  NENHUM disfarge no navegador. Curiosamente as requisições `requests`/
+  curl simples usadas na descoberta inicial (achar a URL certa) não
+  foram bloqueadas, só o Chromium automatizado foi — sinal de que o
+  Akamai da LG mira especificamente fingerprint de navegador
+  automatizado. **Decisão**: não tentei nenhuma técnica de evasão
+  (stealth plugin, proxy, spoofing) pra furar isso — LG continua só com
+  URL + imagem reais, preço/estoque simulados, mesmo estado de antes.
+- **Magazine Luiza e Casas Bahia**: nem tentativa — já bloqueiam
+  `requests` simples (ver tabela abaixo), Playwright não muda nada aí.
+
+**Onde a linha foi traçada, de propósito**: existem técnicas reais pra
+disfarçar automação como tráfego humano (plugins de stealth, rotação de
+proxy residencial, resolução de CAPTCHA) — usadas por serviços
+comerciais de scraping. Não implementei nenhuma delas aqui: um site que
+configura proteção anti-bot deliberada está dizendo "não". Contornar
+isso é uma zona cinzenta de Termos de Uso, na melhor das hipóteses, e um
+scraper assim é inerentemente frágil (a loja detecta e bloqueia de novo,
+loop sem fim). O caminho sustentável de verdade pra esses casos é um
+programa de afiliados oficial (mesma conclusão do brief original) — a
+Casas Bahia até tem um portal de desenvolvedor
+(`developers.grupocasasbahia.com.br`), mas é uma API de MARKETPLACE
+(pra vendedor cadastrar produto pra vender lá), não um feed de preços
+pra site de comparação como o nosso.
+
+**Rodando localmente**: `playwright` é dependência normal do
+`requirements.txt`, mas o binário do navegador (Chromium) é baixado à
+parte (~115MB, não fica no repositório) — depois de `pip install`, rodar
+uma vez:
+```powershell
+python -m playwright install chromium
+```
 
 ### Testado contra uma página REAL (não só teoria)
 
