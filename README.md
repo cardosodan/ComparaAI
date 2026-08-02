@@ -1013,6 +1013,60 @@ explícito (preço continua simulado, já que não existe nenhum preço real
 pra gravar — mas agora a oferta aparece com o badge "Esgotado" em vez de
 um preço inventado que parece comprável).
 
+## Americanas: mesmo bug de estoque do Carrefour, achado no mesmo padrão
+
+Usuário reportou o mesmo problema na Americanas ("só está sem estoque,
+porém continua aparecendo o preço"). Reconferi as 4 entradas "só `url`"
+da Americanas (Electrolux IF55, Brastemp BRE80, Consul CRM50, LG GC-B) —
+todas as 4 mostram exatamente o mesmo padrão já visto no Carrefour:
+JSON-LD com `"price": "0"`, `"availability": "OutOfStock"` e
+`"seller": {"name": "1"}` (o mesmo vendedor-placeholder que sinaliza "sem
+oferta de marketplace válida"). Corrigido: as 4 ganharam `"em_estoque":
+False` explícito, mesmo tratamento do Carrefour.
+
+## LG Side by Side (GC-L) descontinuada — substituída por modelo atual
+
+Usuário confirmou: a LG Side by Side 601L (GC-L247SLUV/GS65SDN1, nosso
+"GC-L") está completamente descontinuada — indisponível em todos os
+sites, inclusive no da própria LG. Reconferido com Playwright no
+Carrefour: mesmo o JSON-LD estático ainda dizendo "InStock" (dado
+desatualizado), a página renderizada mostra "não possui disponibilidade
+para entrega na sua região" — confirma o relato. As 3 entradas reais
+(LG, Carrefour, Amazon) ganharam `em_estoque: False`.
+
+Usuário pediu, de forma mais ampla: "ponha geladeiras atuais, das mais
+populares até as mais exclusivas, quero geladeiras que estão à venda em
+todos os sites... o mesmo quando formos fazer isso pra outros
+eletrodomésticos" — um pedido grande (auditoria completa dos 10
+produtos). Perguntei o escopo; usuário escolheu **só substituir a LG
+GC-L por agora** (não auditar os outros 9 ainda).
+
+**Substituição**: `model` "GC-L" virou **"GC-X267"** — LG **GC-X267GL5P**
+(628L, linha InstaView — painel de vidro que acende com 2 toques, vê o
+conteúdo sem abrir a porta), modelo atual confirmado em 4 lojas reais:
+- **LG** (site oficial): url + imagem reais, preço/estoque continuam
+  simulados (mesma limitação de sempre — JS-rendered, Akamai bloqueia
+  Playwright).
+- **Carrefour**: JSON-LD real (R$18.230) E reconferido AO VIVO com
+  Playwright (não repetir o erro do GC-L) — sem aviso de
+  indisponibilidade, com desconto real à vista no PIX (R$16.407, -10%).
+- **Fast Shop**: JSON-LD real, com promoção real (`listPriceWithTaxes`):
+  de R$23.789 por R$21.410,10 (~10%).
+- **Angeloni**: JSON-LD real (marketplace "Webcontinental"), em estoque,
+  R$23.789.
+- **Amazon**: não tem esse SKU exato — usei o **GC-X257CSH1** (598L,
+  mesma linha InstaView/Craft Ice) como aproximação, página real
+  confirmada mas indisponível (mesmo padrão da maioria dos produtos
+  Amazon nesta sessão).
+- Kabum e Americanas não têm nenhum dos dois SKUs indexado — ficaram de
+  fora (nunca inventar uma URL sem confirmar).
+
+Preço-base/specs atualizados pra refletir a faixa de preço real (bem
+mais alta que a antiga 601L — é um modelo mais premium/exclusivo, como
+pedido). Reseed (13 lojas, 57 preços — 2 a mais que antes, já que esse
+produto agora tem mais lojas com dado real) + curl confirmaram hero e
+badge "-10% no PIX" renderizando certo.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo

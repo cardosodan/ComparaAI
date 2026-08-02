@@ -298,10 +298,14 @@ PRODUTOS = [
                 "url": "https://www.carrefour.com.br/geladeira-electrolux-frost-free-inverter-490l-inverse-inox-look-ib7s-mp955042852/p",
                 "em_estoque": False,
             },
-            # Mesmo modelo IB7S na Americanas — JSON-LD achado, mas também
-            # com "price": 0 (mesmo problema de catálogo). Só `url`.
+            # Mesmo modelo IB7S na Americanas — JSON-LD confirma
+            # `price: "0"`, `availability: OutOfStock`, `seller: "1"` (o
+            # mesmo vendedor-placeholder usado quando não há nenhuma oferta
+            # de marketplace válida — não é bug de catálogo, é falta de
+            # estoque real). `em_estoque: False` explícito.
             "Americanas": {
                 "url": "https://www.americanas.com.br/geladeira-electrolux-frost-free-inverter-490l-inverse-inox-look-ib7s-7489466541/p",
+                "em_estoque": False,
             },
             # Mesmo modelo IB7S na Amazon — sem JSON-LD, mas confirmado AO
             # VIVO com Playwright (título bate exato): em estoque, com
@@ -396,10 +400,12 @@ PRODUTOS = [
                 "url": "https://www.carrefour.com.br/geladeira-brastemp-frost-free-inverse-588-litros-cor-inox-com-smart-bar-bre85ak-220v-mp929716281/p",
                 "em_estoque": False,
             },
-            # Mesmo modelo BRE85AK na Americanas — JSON-LD achado, mas
-            # também com "price": 0 (mesmo problema de catálogo). Só `url`.
+            # Mesmo modelo BRE85AK na Americanas — mesmo padrão de "sem
+            # oferta válida" (JSON-LD: `price: "0"`, `OutOfStock`, seller
+            # placeholder "1"). `em_estoque: False` explícito.
             "Americanas": {
                 "url": "https://www.americanas.com.br/geladeira-frost-free-inverse-2-portas-588-litros-bre85ak-brastemp-7462033239/p",
+                "em_estoque": False,
             },
             # BRO85ME (French Door, 559L) — outra Brastemp Inverse/French
             # Door na mesma classe de capacidade, achada real na Kabum
@@ -521,10 +527,12 @@ PRODUTOS = [
                 "url": "https://www.carrefour.com.br/geladeira-consul-crm50fb-frost-free-duplex-410l-mp934406719/p",
                 "em_estoque": False,
             },
-            # Mesmo modelo CRM50FB na Americanas — JSON-LD achado, mas
-            # também com "price": 0 (mesmo problema de catálogo). Só `url`.
+            # Mesmo modelo CRM50FB na Americanas — mesmo padrão de "sem
+            # oferta válida" (JSON-LD: `price: "0"`, `OutOfStock`, seller
+            # placeholder "1"). `em_estoque: False` explícito.
             "Americanas": {
                 "url": "https://www.americanas.com.br/geladeira-consul-frost-free-duplex-com-espaco-flex-410l-branca-crm50fb-7512217016/p",
+                "em_estoque": False,
             },
             # Mesmo modelo CRM50FB na Amazon — página real confirmada
             # (título bate exato, inclusive o código do modelo), indisponível
@@ -646,10 +654,12 @@ PRODUTOS = [
                 "preco": 2999.00, "em_estoque": True,
                 "preco_original": 3156.84, "promo_dias": 10, "promo_pix": True,
             },
-            # Modelo próximo (GN-B392PLM) na Americanas — JSON-LD achado,
-            # mas com "price": 0 (mesmo problema de catálogo). Só `url`.
+            # Modelo próximo (GN-B392PLM) na Americanas — mesmo padrão de
+            # "sem oferta válida" (JSON-LD: `price: "0"`, `OutOfStock`,
+            # seller placeholder "1"). `em_estoque: False` explícito.
             "Americanas": {
                 "url": "https://www.americanas.com.br/geladeira-lg-frost-free-inverter-395l-duplex-inox-look-gn-b392plm-220v-17592d4yo3629823/p",
+                "em_estoque": False,
             },
             # Modelo próximo (mesma família GN-B392) na Fast Shop —
             # JSON-LD real, em estoque. PROMOÇÃO REAL confirmada:
@@ -674,30 +684,65 @@ PRODUTOS = [
         },
     },
     {
-        "brand": "LG", "model": "GC-L", "nome_curto": "Side by Side 601L",
-        "preco_base": 8299.00,
-        "specs": {"capacidade_litros": 601, "frost_free": True, "cor": "Inox",
-                   "voltagem": "Bivolt", "dimensoes_cm": "179 x 91 x 73", "consumo_kwh_mes": 51.4},
-        # GC-L247SLUV (601L Side by Side) — mesmo prefixo "GC-L" do nosso
-        # model e capacidade EXATAMENTE igual (601L). Mesma limitação de
-        # preço/estoque via JS que a Samsung/GC-B.
+        "brand": "LG", "model": "GC-X267", "nome_curto": "Side by Side InstaView 628L",
+        "preco_base": 19999.00,
+        "specs": {"capacidade_litros": 628, "frost_free": True, "cor": "Inox",
+                   "voltagem": "Bivolt", "dimensoes_cm": "179 x 91.3 x 73.5", "consumo_kwh_mes": 54.0},
+        # SUBSTITUIU o antigo "GC-L" (GC-L247SLUV/GS65SDN1, 601L) —
+        # usuário confirmou que aquele modelo foi DESCONTINUADO de vez
+        # ("está completamente indisponível" em todos os sites, inclusive
+        # no da LG) e pediu geladeiras ATUAIS, populares-a-exclusivas, à
+        # venda em todos os sites. GC-X267GL5P (628L, linha InstaView —
+        # painel de vidro que acende com 2 toques, sem precisar abrir a
+        # porta) é o Side by Side atual da LG, confirmado em
+        # lg.com.br/br + Carrefour + Fast Shop + Angeloni, todos com
+        # preço real e InStock confirmado (Carrefour reconferido AO VIVO
+        # com Playwright, não só JSON-LD estático — sem repetir o mesmo
+        # erro do GC-L antigo). Amazon não tem esse SKU exato; usei o
+        # GC-X257CSH1 (598L, mesma linha InstaView/Craft Ice) como
+        # aproximação — página real confirmada, mas indisponível lá
+        # (mesmo padrão da maioria dos produtos Amazon nesta sessão).
+        # Kabum e Americanas não têm nenhum dos dois SKUs indexado.
         "lojas_reais": {
             "LG": {
-                "url": "https://www.lg.com/br/geladeiras/lg-GC-L247SLUV-geladeira-side-by-side-601-litros",
-                "imagem": "https://www.lg.com/content/dam/channel/wcms/br/images/geladeiras/gc-l247sluv_apzfsbs_essp_br_c/450_basic.jpg",
+                "url": "https://www.lg.com/br/geladeiras/geladeiras-side-by-side/gc-x267gl5p/",
+                "imagem": "https://www.lg.com/content/dam/channel/wcms/br/images/geladeiras/gc-x267gl5p/gallery/450.jpg",
             },
-            # GS65SDN1 (mesma capacidade 601L, Side by Side com ThinQ) no
-            # Carrefour — JSON-LD real, em estoque.
+            # GC-X267GL5P no Carrefour — JSON-LD real (R$18.230,00,
+            # InStock) E reconferido ao vivo com Playwright: sem aviso de
+            # indisponibilidade, mostra inclusive um desconto real à
+            # vista no PIX (R$16.407,00, exatamente -10% — mesmo padrão
+            # já visto na Consul CRB39/LG GC-B).
             "Carrefour": {
-                "url": "https://www.carrefour.com.br/geladeira-smart-lg-side-by-side-inverter-601-litros-inox-220v-com-door-in-door-e-lg-thinq-gs65sdn1-5122953/p",
-                "preco": 12799.00, "em_estoque": True,
+                "url": "https://www.carrefour.com.br/geladeira-smart-lg-side-by-side-inverter-frost-free-628-litros-inox-gc-x267gl5p-mp957895903/p",
+                "preco": 16407.00, "em_estoque": True,
+                "preco_original": 18230.00, "promo_dias": 8, "promo_pix": True,
+                "imagem": "https://carrefourbr.vtexassets.com/arquivos/ids/215032081/image-0.jpg?v=639155922294530000",
             },
-            # Mesmo modelo GS65SDN1 (idêntico ao já usado no Carrefour
-            # acima) na Amazon — página real confirmada, indisponível
-            # (Playwright, sem previsão de retorno).
+            # GC-X267GL5P na Fast Shop — JSON-LD real, em estoque.
+            # PROMOÇÃO REAL confirmada (mesmo padrão de sempre,
+            # `listPriceWithTaxes`): de R$23.789,00 por R$21.410,10, ~10%.
+            "Fast Shop": {
+                "url": "https://site.fastshop.com.br/geladeira-lg-side-by-side-frost-free-inverter-628l-gc-x267gl5p-inox-bivolt-170375/p",
+                "preco": 21410.10, "em_estoque": True,
+                "preco_original": 23789.00, "promo_dias": 6,
+                "imagem": "https://fastshopbr.vtexassets.com/arquivos/ids/4958385/17803228281732.jpg?v=639160284511300000",
+            },
+            # GC-X267GL5P na Angeloni — JSON-LD real (AggregateOffer,
+            # marketplace "Webcontinental"), em estoque.
+            "Angeloni": {
+                "url": "https://www.angeloni.com.br/eletro/geladeira-lg-side-by-side-frost-free-inverter-628l-gc-x267gl5p-inox-bivolt-689647/p",
+                "preco": 23789.00, "em_estoque": True,
+                "imagem": "https://eletroangeloni.vtexassets.com/arquivos/ids/4657707/17817313429693.jpg?v=639197403570400000",
+            },
+            # GC-X257CSH1 (598L, mesma linha InstaView/Craft Ice) na
+            # Amazon — página real confirmada, indisponível (Playwright,
+            # sem previsão de retorno — mesmo padrão da maioria dos
+            # produtos Amazon nesta sessão).
             "Amazon": {
-                "url": "https://www.amazon.com.br/Refrigerador-LG-Lancaster-Escovado-GS65SDN1/dp/B07B53HJY2",
+                "url": "https://www.amazon.com.br/Geladeira-LG-InstaView-UVnano-litros/dp/B0B5B29TG4",
                 "em_estoque": False,
+                "imagem": "https://m.media-amazon.com/images/I/41vKKsTW5FL._AC_SX679_.jpg",
             },
         },
     },
