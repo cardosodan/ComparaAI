@@ -880,6 +880,13 @@ PRODUTOS_MICROONDAS = [
                 "preco": 529.00, "em_estoque": True,
                 "imagem": "https://electrolux.vtexassets.com/arquivos/ids/213875/Micro_ondas_MTO30_frontal_1000x1000.jpg?v=638796669337900000",
             },
+            # Achada no Carrefour — JSON-LD real, mas com "price": 0 (mesmo
+            # problema de catálogo já visto em Geladeiras). Amazon (2
+            # ASINs testados) confirmado indisponível ao vivo, sem preço
+            # nenhum pra registrar — nenhuma das duas entra.
+            "Carrefour": {
+                "url": "https://www.carrefour.com.br/microondas-com-funcao-tira-odor-20l-electrolux-220v-mto30-branco-mp929917524/p",
+            },
         },
     },
     {
@@ -891,6 +898,29 @@ PRODUTOS_MICROONDAS = [
                 "url": "https://loja.electrolux.com.br/micro-ondas-painel-integrado-electrolux-mi41s/p",
                 "preco": 749.00, "em_estoque": True,
                 "imagem": "https://electrolux.vtexassets.com/arquivos/ids/213863/Micro-ondas_MI41S_frontal_1000x1000.jpg?v=638796662872700000",
+            },
+            # Carrefour — JSON-LD real E reconferido ao vivo com
+            # Playwright: sem aviso de indisponibilidade, com desconto
+            # real à vista no PIX (R$906,19 no cartão, R$879,00 no PIX,
+            # ~3%).
+            "Carrefour": {
+                "url": "https://www.carrefour.com.br/produto/micro-ondas-electrolux-litros-inox-espelhado-com-painel-integrado-funcao-tira-odor-e-receitas-mis-v-25254",
+                "preco": 879.00, "em_estoque": True,
+                "preco_original": 906.19, "promo_dias": 10, "promo_pix": True,
+                "imagem": "https://carrefourbr.vtexassets.com/arquivos/ids/215575781/9966730_1.jpg?v=639180956466830000",
+            },
+            # Amazon — sem JSON-LD, confirmado AO VIVO com Playwright: em
+            # estoque, preço real na página.
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Micro-Ondas-Electrolux-Prata-Painel-Integrado/dp/B076XCSJ4Q",
+                "preco": 749.00, "em_estoque": True,
+                "imagem": "https://m.media-amazon.com/images/I/51jWG1vyGyL._AC_SX679_.jpg",
+            },
+            # Bemol — JSON-LD real, mas indisponível.
+            "Bemol": {
+                "url": "https://www.bemol.com.br/micro-ondas-electrolux-31l-painel-integrado-espelhado-127v-inox-mi41s/p",
+                "preco": 1049.00, "em_estoque": False,
+                "imagem": "https://bemol.vtexassets.com/arquivos/ids/166933/182284.jpg?v=639034236273270000",
             },
         },
     },
@@ -910,6 +940,20 @@ PRODUTOS_MICROONDAS = [
                 "preco_original": 1639.00, "promo_dias": 7,
                 "imagem": "https://brastemp.vtexassets.com/arquivos/ids/255318/01_Brastemp_Micro_ondas_BMJ38AR_Imagem_Fechado--1-.png?v=638858514969700000",
             },
+            # Fast Shop e Kabum — JSON-LD real nas duas, mas AMBAS
+            # indisponíveis no momento (preço real registrado, sem
+            # destacar a promoção que a Fast Shop mostra, já que não dá
+            # pra comprar ali — mesmo critério de sempre).
+            "Fast Shop": {
+                "url": "https://site.fastshop.com.br/micro-ondas-brastemp-ative-38-litros-espelhado-com-grill-inox---bmj38ar-brbmj38ar_prd/p",
+                "preco": 1419.00, "em_estoque": False,
+                "imagem": "https://fastshopbr.vtexassets.com/arquivos/ids/5295867/0_0_675b42eb447c42f8bd09ef3c.jpg?v=639202588417930000",
+            },
+            "Kabum": {
+                "url": "https://www.kabum.com.br/produto/183255/micro-ondas-brastemp-ative-38-litros-com-grill-127v-inox-bmj38ar",
+                "preco": 1284.60, "em_estoque": False,
+                "imagem": "https://images5.kabum.com.br/produtos/fotos/sync_mirakl/183255/Micro-Ondas-Brastemp-Ative-38-Litros-Com-Grill-127V-Inox-Bmj38ar_1685627296_g.jpg",
+            },
         },
     },
     {
@@ -925,6 +969,25 @@ PRODUTOS_MICROONDAS = [
                 "preco_original": 16499.00, "promo_dias": 5,
                 "imagem": "https://brastemp.vtexassets.com/arquivos/ids/267249/01_Brastemp_Micro_ondas_BMO45AR_Imagem_Frontal.jpg?v=638974470401830000",
             },
+            # Carrefour — JSON-LD real + Playwright confirmou "Comprar"
+            # ativo (sem aviso de indisponibilidade). Preço de cartão
+            # R$14.619, com desconto de 5% no PIX (R$13.888,05).
+            "Carrefour": {
+                "url": "https://www.carrefour.com.br/microondas-de-embutir-brastemp-gourmand-40-litros-inox-com-sistema-3d-e-sensor-cooking-bmo45ar-220v-mp920201703/p",
+                "preco": 13888.05, "em_estoque": True,
+                "preco_original": 14619.00, "promo_dias": 10, "promo_pix": True,
+            },
+            # Amazon — Playwright confirmou "Somente 3 em estoque" (real,
+            # sem fallback/estimativa).
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Micro-ondas-embutir-Brastemp-Gourmand-BMO45ARBNA/dp/B0831NX2D5",
+                "preco": 13315.00, "em_estoque": True,
+            },
+            # Kabum — JSON-LD real, sem estoque no momento da checagem.
+            "Kabum": {
+                "url": "https://www.kabum.com.br/produto/266058/microondas-de-embutir-brastemp-gourmand-40-litros-inox-220v-bmo45arbna",
+                "preco": 15401.69, "em_estoque": False,
+            },
         },
     },
     {
@@ -934,6 +997,11 @@ PRODUTOS_MICROONDAS = [
         # por R$504,90 (~16%). Modelo irmão CMS23AR (mesma capacidade,
         # cor inox) achado real na Fast Shop — aproximação de cor,
         # mesmo padrão já usado em Geladeiras (BRE85AK/BRO85ME etc.).
+        # CONFIRMADO (pesquisa dedicada): esse é o micro-ondas "entrada"
+        # da linha Marmita — não achado em Carrefour/Amazon/Kabum/
+        # Americanas/Bemol/Angeloni (só em varejistas menores fora do
+        # nosso catálogo de lojas, tipo Taqi/CompraCerta/WebcoPeças).
+        # Escassez real do próprio mercado, não falha de pesquisa.
         "lojas_reais": {
             "Consul": {
                 "url": "https://www.consul.com.br/micro-ondas-consul-23l-preto-com-funcao-marmita-cms23ae/p",
@@ -959,6 +1027,31 @@ PRODUTOS_MICROONDAS = [
                 "preco": 604.80, "em_estoque": True,
                 "preco_original": 969.00, "promo_dias": 4,
                 "imagem": "https://consul.vtexassets.com/arquivos/ids/267975/01_Consul_Micro_ondas_CMS46AB_Imagem_Frontal.jpg?v=638975360656400000",
+            },
+            # Carrefour — JSON-LD real E reconferido ao vivo com
+            # Playwright: sem aviso de indisponibilidade, com desconto
+            # real à vista no PIX (R$705,43 no cartão, R$649,00 no PIX,
+            # ~8%).
+            "Carrefour": {
+                "url": "https://www.carrefour.com.br/microondas-consul-32-litros-branco-com-menu-facil-cms46ab-110v-6558828/p",
+                "preco": 649.00, "em_estoque": True,
+                "preco_original": 705.43, "promo_dias": 10, "promo_pix": True,
+                "imagem": "https://carrefourbr.vtexassets.com/arquivos/ids/26440123/6558828_1.jpg?v=637729232468330000",
+            },
+            # Amazon — sem JSON-LD, confirmado AO VIVO com Playwright: em
+            # estoque, preço real na página.
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Micro-Ondas-32-Cms46Abana-Branco-Consul/dp/B0BL88R1Q8",
+                "preco": 659.00, "em_estoque": True,
+                "imagem": "https://m.media-amazon.com/images/I/51I38-LDDxL._AC_SX679_.jpg",
+            },
+            # Modelo próximo CMS46AR (mesma capacidade/linha, cor cinza
+            # espelhado em vez de branco) na Bemol — JSON-LD real, em
+            # estoque.
+            "Bemol": {
+                "url": "https://www.bemol.com.br/micro-ondas-consul-32-litros-espelhado-menu-facil-cinza-cms46ar/p",
+                "preco": 659.00, "em_estoque": True,
+                "imagem": "https://bemol.vtexassets.com/arquivos/ids/566950/223771.jpg?v=639080550814130000",
             },
         },
     },
@@ -1018,6 +1111,19 @@ PRODUTOS_MICROONDAS = [
                 "preco": 569.05, "em_estoque": True,
                 "imagem": "https://panasonic.vtexassets.com/arquivos/ids/163258/Micro_Frontal_Branco.jpg?v=638786914020070000",
             },
+            # Kabum — JSON-LD real, mas indisponível.
+            "Kabum": {
+                "url": "https://www.kabum.com.br/produto/162080/micro-ondas-panasonic-nn-st25lwrun-21-litros-branco-cinza-110v",
+                "preco": 617.22, "em_estoque": False,
+                "imagem": "https://images0.kabum.com.br/produtos/fotos/sync_mirakl/162080/Micro-ondas-Panasonic-Nn-st25lwrun-21-Litros-Branco-cinza-110v_1693859294_g.jpg",
+            },
+            # Amazon — sem JSON-LD, confirmado AO VIVO com Playwright: em
+            # estoque, preço real na página.
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Micro-ondas-Panasonic-NN-ST25LWRUN-Branco-110V/dp/B08JN318M2",
+                "preco": 499.00, "em_estoque": True,
+                "imagem": "https://m.media-amazon.com/images/I/515SGypJAmL._AC_SX679_.jpg",
+            },
         },
     },
     {
@@ -1027,12 +1133,21 @@ PRODUTOS_MICROONDAS = [
         # R$1.239,37 por R$1.099, mas `OutOfStock` (quantity: 0) —
         # preço real registrado sem desconto em destaque (mesmo critério
         # já usado em Geladeiras pra item esgotado: não faz sentido
-        # destacar promoção de algo que não dá pra comprar ali).
+        # destacar promoção de algo que não dá pra comprar ali). Kabum
+        # também achado, real, mas igualmente indisponível. Amazon
+        # testado (Playwright) — página real mas sem oferta em destaque
+        # nem preço claro (mesmo padrão "nenhuma oferta em destaque" já
+        # visto antes com outras lojas); não entra, sem inventar preço.
         "lojas_reais": {
             "Fast Shop": {
                 "url": "https://site.fastshop.com.br/micro-ondas-de-mesa-panasonic-com-30-litros-de-capacidade-e-grill-preto---nn-gt68lbru-panngt68l_prd/p",
                 "preco": 1099.00, "em_estoque": False,
                 "imagem": "https://fastshopbr.vtexassets.com/arquivos/ids/5293945/0_0_675b43a6447c42f8bd09ff9b.jpg?v=639202480184070000",
+            },
+            "Kabum": {
+                "url": "https://www.kabum.com.br/produto/182809/micro-ondas-panasonic-tecnologia-dupla-refeicao-preto-30-litros-110v-nn-gt68lbrun",
+                "preco": 1067.00, "em_estoque": False,
+                "imagem": "https://images9.kabum.com.br/produtos/fotos/sync_mirakl/182809/Microondas-Panasonic-Tecnologia-Dupla-Refei-o-Preto-30-Litros-110v-Nn-gt68lbrun_1689988689_g.jpg",
             },
         },
     },

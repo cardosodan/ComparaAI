@@ -1286,6 +1286,56 @@ também não foi generalizado/escondido pra outras categorias ainda —
 não quebra nada (um micro-ondas simplesmente não tem essa spec, filtro
 não bate), mas é um polimento visual pendente.
 
+## Micro-ondas: cobertura aprofundada (usuário notou "quase todos só tem 1 opção")
+
+Usuário reparou, com razão, que o rollout inicial de Micro-ondas tinha
+saído raso — vários produtos com uma única loja. Causa: o primeiro
+rollout só cadastrou a loja oficial de cada marca + no máximo mais uma,
+sem repetir a busca completa (Amazon/Carrefour/Fast Shop/Kabum/Bemol)
+já feita produto a produto pra cada Geladeira. Corrigido repetindo essa
+mesma varredura pra 8 dos 10 micro-ondas:
+
+- **Electrolux MI41S**: +Carrefour (R$879 no PIX / R$906,19 no cartão,
+  ~3%, Playwright confirmou "Comprar" ativo), +Amazon (R$749, em
+  estoque), +Bemol (R$1.049, **esgotado** — JSON-LD real).
+- **Brastemp BMJ38AR**: +Fast Shop (R$1.419, esgotado), +Kabum
+  (R$1.284,60, esgotado).
+- **Brastemp BMO45AR** (o mais exclusivo/caro da categoria): +Carrefour
+  (R$13.888,05 no PIX / R$14.619 no cartão, ~5%, Playwright confirmou
+  "Comprar" sem aviso de indisponibilidade), +Amazon (R$13.315,00,
+  Playwright confirmou "Somente 3 em estoque"), +Kabum (R$15.401,69,
+  esgotado). De 1 loja pra 4.
+- **Consul CMS46AB**: +Carrefour (R$649 no PIX / R$705,43 no cartão,
+  ~8%, Playwright confirmado), +Amazon (R$659, em estoque), +Bemol
+  (como a variante CMS46AR, cor cinza espelhado em vez de branco —
+  mesma aproximação de cor já usada em Geladeiras — R$659, em estoque).
+  De 1 loja pra 4.
+- **Panasonic NN-ST25**: +Kabum (R$617,22, esgotado), +Amazon (R$499,
+  em estoque, a mais barata entre todas as lojas).
+- **Panasonic NN-GT68**: +Kabum (R$1.067, esgotado). Amazon foi
+  verificada mas mostrou "Nenhuma opção de compra em destaque" — sem
+  oferta confiável ali, então a loja não foi adicionada pra esse
+  produto (nunca inventar um preço só pra preencher).
+
+**2 casos de escassez real confirmada, não falha de pesquisa** — pesquisa
+dedicada em Carrefour/Amazon/Kabum/Americanas/Bemol/Angeloni não achou
+nada em nenhum dos dois:
+- **Electrolux MTO30** (o micro-ondas mais básico/barato da categoria)
+  continua só na loja oficial Electrolux.
+- **Consul CMS23AE** (linha "Marmita" de entrada) continua só em
+  Consul + Fast Shop (como a variante CMS23AR) — o modelo aparece só em
+  varejistas pequenos fora do catálogo de lojas do site (Taqi,
+  CompraCerta, WebcoPeças), não nos grandes players que o site rastreia.
+
+Reseed: **64 preços** no total (era 61 antes desta rodada, 50 antes do
+rollout de Micro-ondas inteiro). Cobertura por produto de Micro-ondas
+depois desta rodada: BMO45AR e CMS46AB com 4 lojas cada, MI41S com 4,
+NN-ST25 e BMJ38AR com 3, NN-GT68 com 2, MTO30 e CMS23AE com 1-2 (escassez
+real, documentada acima) — nenhum produto ficou pior do que estava,
+vários saíram de 1 loja pra 3-4. Verificado com uma query direta no
+banco (contagem de `Price` por produto + `esgotado`/`price_min`) que
+nenhum produto ficou com `price_min = None` ou dado quebrado.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
