@@ -637,6 +637,50 @@ só a Bemol tinha dado real (todo o resto igualmente simulado), mas
 sortear MENOS que todas agora esconderia dado bom atrás de sorte,
 contrariando o pedido de cobertura completa.
 
+**(Estado descrito acima ficou obsoleto pouco depois — ver seção
+"Magazine Luiza e Casas Bahia removidas..." mais abaixo: as duas saíram
+do catálogo de vez, e "Loja Oficial da Marca" virou 5 lojas com nome
+próprio.)**
+
+## Magazine Luiza e Casas Bahia removidas, Carrefour no lugar, marcas com nome próprio
+
+Depois de confirmar (README acima) que Magazine Luiza e Casas Bahia
+bloqueiam qualquer automação — mesmo Playwright sem disfarce nenhum —,
+usuário pediu pra **remover as duas de vez** e "colocar todas que não
+nos bloqueiam" no lugar, além de trocar o rótulo genérico "Loja Oficial
+da Marca" pelo **nome real de cada marca**.
+
+**Lojas candidatas testadas antes de escolher** (mesma disciplina de
+sempre — nunca adicionar sem checar `robots.txt` primeiro): Mercado
+Livre **bloqueia explicitamente bots de IA no robots.txt**
+(`Disallow: /` pra `ClaudeBot`/`GPTBot`/etc — achado real, quase virou
+mais um erro se eu tivesse pulado essa checagem), Fast Shop não respondeu
+robots.txt, Kabum respondeu mas tem catálogo de eletrodomésticos fraco
+pras nossas 5 marcas (só 1 Brastemp de linha diferente). **Carrefour**
+passou em tudo: `robots.txt` permite, é VTEX (mesma plataforma de Bemol/
+Brastemp/Consul/Electrolux), e tem cobertura real pra praticamente o
+catálogo inteiro via WebSearch.
+
+**Achado ao testar o JSON-LD do Carrefour produto a produto**: várias
+páginas retornam `"price": 0` junto com `"availability": InStock` — dado
+de catálogo claramente quebrado (visto em Electrolux DF44/IF55 parcial,
+Brastemp BRE80, Consul CRM50, Samsung RT46/RF50). Só usei preço/estoque
+reais do Carrefour nos 4 produtos onde o preço veio um valor de verdade
+(Brastemp BRM44, Consul CRB39, LG GC-B, LG GC-L) — os outros ficam só
+com `url` (mesmo padrão de honestidade de sempre: nunca gravar um "0"
+como se fosse preço real). Electrolux DF44 nem tem entrada de Carrefour
+— toda URL encontrada pra DFN41 lá deu 404 (anúncio removido do índice).
+
+**"Loja Oficial da Marca" virou 5 `Store` distintos** (Electrolux,
+Brastemp, Consul, Samsung, LG) em vez de um genérico reaproveitado —
+resolve o pedido ("quero o nome da marca mesmo") e também elimina de vez
+o lookup `_SITE_OFICIAL_POR_MARCA` que existia só pra compensar o rótulo
+genérico. `popular_produtos_e_precos()` mudou de "sempre as 4 lojas
+online" pra: Amazon + Carrefour (universais, todo produto) + a loja
+DAQUELA marca especificamente (nunca a Consul aparecendo num produto
+Samsung) + 1 física — mantém a cobertura máxima pedida antes, sem
+misturar marca errada com produto errado.
+
 ## Painel admin — busca e toggle (polish adicional)
 
 - Barra de busca (Alpine.js, filtro client-side por nome/modelo/marca —

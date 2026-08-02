@@ -70,56 +70,41 @@ def tempo_relativo(momento: datetime, agora: datetime) -> str:
 # Diante disso, só entra aqui o que tem confiança REAL (não só status
 # code): o formato de busca do Amazon (`/s?k=`) é um padrão global,
 # extremamente estável, usado há mais de uma década em todos os países —
-# não é um chute novo pra esse projeto. Todo o resto (Magazine Luiza,
-# Casas Bahia, Brastemp, Consul, Samsung, LG, Electrolux) fica de fora de
-# propósito e cai no fallback de HOMEPAGE em `url_busca_de_apoio` — menos
-# preciso, mas nunca mais um link inventado que erra o parâmetro ou bate
-# num 404 real.
+# não é um chute novo pra esse projeto. Todo o resto (Carrefour, Brastemp,
+# Consul, Samsung, LG, Electrolux) fica de fora de propósito e cai no
+# fallback de HOMEPAGE em `url_busca_de_apoio` — menos preciso, mas nunca
+# mais um link inventado que erra o parâmetro ou bate num 404 real.
 _PADROES_BUSCA_POR_SITE = {
     "https://www.amazon.com.br": "https://www.amazon.com.br/s?k={q}",
 }
 
-# "Loja Oficial da Marca" no seed sempre apontava pro site da Electrolux
-# (bug pré-existente) mesmo pra produto Brastemp/Consul/Samsung/LG — cada
-# marca tem seu próprio site oficial de verdade no Brasil.
-_SITE_OFICIAL_POR_MARCA = {
-    # loja.electrolux.com.br é a LOJA de verdade (VTEX) — www.electrolux.com.br
-    # é só o site institucional/marketing e nunca teve nenhuma página de
-    # busca funcionando (toda tentativa de query nele deu 503).
-    "Electrolux": "https://loja.electrolux.com.br",
-    "Brastemp": "https://www.brastemp.com.br",
-    "Consul": "https://www.consul.com.br",
-    "Samsung": "https://www.samsung.com/br",
-    "LG": "https://www.lg.com/br",
-}
-
 
 def url_busca_de_apoio(loja, produto) -> str | None:
-    """Quando a oferta não tem `Price.url` confirmado (loja sem dado real
-    extraído ainda — hoje só a Bemol tem, ver seed_data.py), manda pra
-    busca de verdade DENTRO do site da própria loja (não uma busca no
-    Google) — pedido explícito do usuário, que quer "entrar no site" e
-    não ficar só numa pesquisa externa.
+    """Quando a oferta não tem `Price.url` confirmado pra esse produto
+    específico (ver seed_data.py — cada loja tem dado real só nos
+    produtos onde já foi verificado), manda pra busca de verdade DENTRO
+    do site da própria loja (não uma busca no Google) — pedido explícito
+    do usuário, que quer "entrar no site" e não ficar só numa pesquisa
+    externa. Desde que cada marca (Electrolux/Brastemp/Consul/Samsung/LG)
+    virou um `Store` próprio com o `website_url` já correto (em vez de um
+    "Loja Oficial da Marca" genérico com lookup por marca), essa função
+    não precisa mais adivinhar qual site usar — é sempre `loja.website_url`.
 
-    Site sem padrão de busca confirmado (Electrolux, ou qualquer domínio
-    fora de `_PADROES_BUSCA_POR_SITE`) cai na HOMEPAGE do site — ainda
-    assim entra no site de verdade, só sem a query pronta; melhor que
-    arriscar inventar uma URL de busca que talvez nem exista (foi
-    exatamente esse erro que gerou o bug anterior: um link sintético que
-    nunca existiu).
+    Site sem padrão de busca confirmado (qualquer domínio fora de
+    `_PADROES_BUSCA_POR_SITE`) cai na HOMEPAGE do site — ainda assim entra
+    no site de verdade, só sem a query pronta; melhor que arriscar
+    inventar uma URL de busca que talvez nem exista (foi exatamente esse
+    erro que gerou o bug anterior: um link sintético que nunca existiu).
 
     `None` só quando a própria loja não tem site nenhum (Eletro Norte,
     loja física fictícia sem `website_url`)."""
-    base = loja.website_url
-    if loja.name == "Loja Oficial da Marca":
-        base = _SITE_OFICIAL_POR_MARCA.get(produto.brand, base)
-    if not base:
+    if not loja.website_url:
         return None
 
-    padrao = _PADROES_BUSCA_POR_SITE.get(base)
+    padrao = _PADROES_BUSCA_POR_SITE.get(loja.website_url)
     if padrao:
         return padrao.format(q=quote_plus(produto.name))
-    return base
+    return loja.website_url
 
 
 # Fase 1 é só geladeiras — mapeamento de specs fixo pra essa categoria.
