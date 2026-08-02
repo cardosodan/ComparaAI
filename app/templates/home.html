@@ -62,7 +62,7 @@
 <!-- Categorias em destaque -->
 {% macro cartao_categoria(categoria) %}
   {% if categoria.active %}
-    <a href="{{ url_for('main.busca', q='geladeira') }}"
+    <a href="{{ url_for('main.busca', q=categoria.name) }}"
        class="group bg-surface border border-border rounded-2xl p-5 flex flex-col items-center gap-3 text-center
               hover:border-accent/40 hover:-translate-y-1 transition-all duration-150">
       <i data-lucide="{{ categoria.icon }}" class="w-8 h-8 text-accent"></i>

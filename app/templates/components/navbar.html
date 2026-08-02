@@ -12,7 +12,7 @@
       {% for categoria in categorias_nav[:5] %}
         <li>
           {% if categoria.active %}
-            <a href="#" class="text-sm font-medium text-ink hover:text-accent transition-colors">
+            <a href="{{ url_for('main.busca', q=categoria.name) }}" class="text-sm font-medium text-ink hover:text-accent transition-colors">
               {{ categoria.name }}
             </a>
           {% else %}
@@ -51,7 +51,7 @@
     {% for categoria in categorias_nav %}
       <li>
         {% if categoria.active %}
-          <a href="#" class="block py-2 text-ink font-medium">{{ categoria.name }}</a>
+          <a href="{{ url_for('main.busca', q=categoria.name) }}" class="block py-2 text-ink font-medium">{{ categoria.name }}</a>
         {% else %}
           <span class="block py-2 text-ink-faint">
             {{ categoria.name }} <span class="text-[10px] align-super">em breve</span>
