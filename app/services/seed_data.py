@@ -230,9 +230,16 @@ PRODUTOS = [
             # no formato canônico `/produto/{slug}-{id}` — página real,
             # confirmada (200 + JSON-LD de Product), mas com "price": 0
             # (mesmo problema de catálogo visto em outros produtos no
-            # Carrefour). Só `url`.
+            # Carrefour). CONFIRMADO ao vivo (Playwright, usuário reportou
+            # com print de tela): a página renderizada mostra "Este produto
+            # não possui disponibilidade para entrega na sua região ou na
+            # loja escolhida" — não é preço zerado por bug de catálogo, é
+            # falta de estoque de verdade. `em_estoque: False` explícito
+            # (não deixar cair no sorteio aleatório, que erraria mostrando
+            # "em estoque" a maioria das vezes).
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/produto/geladeirarefrigerador-frost-free-electrolux-dfn-litros-branco-244624",
+                "em_estoque": False,
             },
             # Mesmo modelo DFN41 na Americanas — JSON-LD real (marketplace,
             # vários vendedores por produto; usei o preço do 1º vendedor
@@ -284,12 +291,12 @@ PRODUTOS = [
                 "imagem": "https://electrolux.vtexassets.com/arquivos/ids/288571/Refrigerator_IB7S_Front_Electrolux_Portuguese-1000x1000.raw.jpg?v=639046841437700000",
             },
             # Mesmo modelo IB7S no Carrefour (também VTEX) — JSON-LD achado,
-            # mas com "price": 0 (dado de catálogo claramente quebrado nessa
-            # listagem específica — visto o mesmo problema em vários outros
-            # produtos no Carrefour). Só `url`, nunca um preço que a própria
-            # página mostra como inválido.
+            # mas com "price": 0. CONFIRMADO ao vivo (Playwright): página
+            # mostra "não possui disponibilidade para entrega na sua
+            # região" — sem estoque de verdade, não é bug de catálogo.
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-electrolux-frost-free-inverter-490l-inverse-inox-look-ib7s-mp955042852/p",
+                "em_estoque": False,
             },
             # Mesmo modelo IB7S na Americanas — JSON-LD achado, mas também
             # com "price": 0 (mesmo problema de catálogo). Só `url`.
@@ -383,9 +390,11 @@ PRODUTOS = [
                 "imagem": "https://brastemp.vtexassets.com/arquivos/ids/270753/Brastemp_Geladeira_BRE85AK_Imagem_Frontal_fechada_jpg_1.jpg?v=638996724145800000",
             },
             # Mesmo modelo BRE85AK no Carrefour — JSON-LD achado, mas com
-            # "price": 0 (mesmo problema de catálogo do IB7S acima). Só `url`.
+            # "price": 0. CONFIRMADO ao vivo (Playwright): sem
+            # disponibilidade de entrega/retirada de verdade.
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-brastemp-frost-free-inverse-588-litros-cor-inox-com-smart-bar-bre85ak-220v-mp929716281/p",
+                "em_estoque": False,
             },
             # Mesmo modelo BRE85AK na Americanas — JSON-LD achado, mas
             # também com "price": 0 (mesmo problema de catálogo). Só `url`.
@@ -503,10 +512,14 @@ PRODUTOS = [
                 "imagem": "https://consul.vtexassets.com/arquivos/ids/273875/01_Consul_Geladeira_CRM50FB_Imagem_Frontal_3--2-.jpg?v=639014100338000000",
             },
             # Mesmo modelo CRM50FB no Carrefour — JSON-LD achado, mas com
-            # "price": 0 (mesmo problema de catálogo visto em outros
-            # produtos no Carrefour). Só `url`.
+            # "price": 0. CONFIRMADO ao vivo (Playwright, o próprio usuário
+            # mandou print desta exata página): "Este produto não possui
+            # disponibilidade para entrega na sua região ou na loja
+            # escolhida para retirada" — não é bug de catálogo, é falta de
+            # estoque real. `em_estoque: False` explícito.
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-consul-crm50fb-frost-free-duplex-410l-mp934406719/p",
+                "em_estoque": False,
             },
             # Mesmo modelo CRM50FB na Americanas — JSON-LD achado, mas
             # também com "price": 0 (mesmo problema de catálogo). Só `url`.
@@ -545,10 +558,12 @@ PRODUTOS = [
                 "preco": 4786.17, "em_estoque": False,
                 "imagem": "https://samsungbrshop.vtexassets.com/arquivos/ids/225589/1.jpg?v=638369774580530000",
             },
-            # Achada no Carrefour — JSON-LD achado, mas com "price": 0
-            # (mesmo problema de catálogo). Só `url`.
+            # Achada no Carrefour — JSON-LD achado, mas com "price": 0.
+            # CONFIRMADO ao vivo (Playwright): sem disponibilidade de
+            # entrega/retirada de verdade.
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-samsung-evolution-rt46-com-powervolt-inverter-duplex-460l-inox-look-bivolt-mp929908731/p",
+                "em_estoque": False,
             },
             # Mesmo modelo RT46 na Kabum — JSON-LD real.
             "Kabum": {
@@ -585,9 +600,11 @@ PRODUTOS = [
                 "imagem": "https://samsungbrshop.vtexassets.com/arquivos/ids/174245/RF22R7351SRAZ_1.jpg?v=637360483544270000",
             },
             # Mesmo modelo RF22R7351SR no Carrefour — JSON-LD achado, mas
-            # com "price": 0 (mesmo problema de catálogo). Só `url`.
+            # com "price": 0. CONFIRMADO ao vivo (Playwright): sem
+            # disponibilidade de entrega/retirada de verdade.
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/produto/refrigeradorgeladeira-samsung-frost-free-0l-rfrsr-320224374",
+                "em_estoque": False,
             },
             # Mesmo modelo RF22R7351SR na Amazon — página real confirmada
             # (título bate exato, inclusive o sufixo /AZ), indisponível

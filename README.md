@@ -990,6 +990,29 @@ JSON-LD + 2 PIX do Carrefour) e 1 correção de estoque. Reseed +
 verificação com curl confirmaram cada uma renderizando com o texto/selo
 certo.
 
+## Carrefour: "price": 0 no JSON-LD era falta de estoque real, não bug de catálogo
+
+Usuário mandou print de tela abrindo direto uma das URLs do Carrefour (a
+da Consul CRM50) e mostrou: "Este produto não possui disponibilidade para
+entrega na sua região ou na loja escolhida para retirada" — nenhum preço
+na página, só esse aviso. Isso contradiz a suposição feita lá atrás (ver
+seção "Magazine Luiza e Casas Bahia removidas...") de que `"price": 0` no
+JSON-LD do Carrefour era um "dado de catálogo quebrado" — na verdade é o
+Carrefour reportando corretamente que **não há nenhuma oferta válida**
+pra aquele SKU/região agora, e o `"price": 0` é só o reflexo disso.
+
+Como essas 6 entradas (Electrolux DF44/IF55, Brastemp BRE80, Consul
+CRM50, Samsung RT46/RF50) só tinham `url` gravada (sem `em_estoque`), o
+site caía no sorteio aleatório (~92% "em estoque") — ou seja, tinha uma
+chance real de mostrar "em estoque" com um preço simulado pra um produto
+que a própria página do Carrefour diz que não tem disponibilidade
+nenhuma. Confirmei com Playwright que as OUTRAS 5 entradas mostram
+exatamente a mesma mensagem de indisponibilidade — não é só a CRM50, é
+sistemático nas 6. Corrigido: todas as 6 ganharam `"em_estoque": False`
+explícito (preço continua simulado, já que não existe nenhum preço real
+pra gravar — mas agora a oferta aparece com o badge "Esgotado" em vez de
+um preço inventado que parece comprável).
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
