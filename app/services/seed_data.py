@@ -58,6 +58,16 @@ LOJAS = [
         "trust_score": 4.2,
     },
     {
+        # site.fastshop.com.br (não www.fastshop.com.br, que redireciona
+        # pra ela) — VTEX, robots.txt limpo (sem bloqueio geral nem de
+        # bot de IA).
+        "name": "Fast Shop",
+        "type": Store.TIPO_ONLINE,
+        "website_url": "https://site.fastshop.com.br",
+        "logo_url": "/static/img/lojas/fastshop.svg",
+        "trust_score": 4.4,
+    },
+    {
         "name": "Electrolux",
         "type": Store.TIPO_ONLINE,
         "website_url": "https://loja.electrolux.com.br",
@@ -256,6 +266,12 @@ PRODUTOS = [
                 "url": "https://www.americanas.com.br/geladeira-brastemp-375-litros-frost-free-duplex-branco-brm44hb-220v-173b869f134f5194/p",
                 "preco": 2749.00, "em_estoque": True,
             },
+            # Mesmo modelo BRM44HB na Fast Shop — JSON-LD real, em estoque.
+            "Fast Shop": {
+                "url": "https://site.fastshop.com.br/geladeira-brastemp-frost-free-duplex-375-litros-cor-branca---brm44hb-47612/p",
+                "preco": 3001.05, "em_estoque": True,
+                "imagem": "https://fastshopbr.vtexassets.com/arquivos/ids/3224680/17644568029130.jpg?v=639018782689000000",
+            },
         },
     },
     {
@@ -316,6 +332,11 @@ PRODUTOS = [
             "Americanas": {
                 "url": "https://www.americanas.com.br/geladeira-consul-342-litros-frost-free-branco-crb39ab-127v-173g9z552j157793/p",
                 "preco": 2499.00, "em_estoque": True,
+            },
+            # Mesmo modelo CRB39AB na Fast Shop — JSON-LD real, em estoque.
+            "Fast Shop": {
+                "url": "https://site.fastshop.com.br/refrigerador-consul-frost-free-342-litros-crb39ab---127-volts-95798/p",
+                "preco": 2902.50, "em_estoque": True,
             },
         },
     },
@@ -437,6 +458,13 @@ PRODUTOS = [
             "Americanas": {
                 "url": "https://www.americanas.com.br/geladeira-lg-frost-free-inverter-395l-duplex-inox-look-gn-b392plm-220v-17592d4yo3629823/p",
             },
+            # Modelo próximo (mesma família GN-B392) na Fast Shop —
+            # JSON-LD real, em estoque.
+            "Fast Shop": {
+                "url": "https://site.fastshop.com.br/geladeira-lg-frost-free-inverter-395l-duplex-branca-110v-129095/p",
+                "preco": 3477.06, "em_estoque": True,
+                "imagem": "https://fastshopbr.vtexassets.com/arquivos/ids/2484520/17582049198853.jpg?v=638973653955830000",
+            },
         },
     },
     {
@@ -516,26 +544,28 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
         db.session.add(produto)
         produtos.append(produto)
 
-        # Lojas online "universais" (Amazon, Carrefour, Americanas) —
-        # comparar o máximo de ofertas possível é o pedido do usuário
-        # ("quero que todos os produtos estejam com todos os links de
-        # todas as marcas funcionando" + depois "eu queria ter mais opções
-        # de lugares para comprar"), MAS Carrefour/Americanas só têm dado
-        # real pra ALGUNS produtos (WebSearch não achou tudo) — incluir
-        # elas em produto SEM entrada real repetiria o mesmo bug corrigido
-        # 2x nesta sessão (Carrefour no Electrolux DF44, Bemol no LG): sem
-        # `Price.url`, a oferta cai no fallback de HOMEPAGE, que parece um
-        # link quebrado/sem sentido pro usuário. Por isso, diferente da
-        # Amazon (busca sempre funciona, entra sempre), Carrefour/
-        # Americanas só entram no produto onde JÁ existe uma URL real
-        # confirmada em `lojas_reais` — garante estruturalmente que
-        # NENHUMA oferta dessas duas caia em homepage, mesmo pra produto
-        # futuro que eu esqueça de pesquisar.
+        # Lojas online "universais" (Amazon, Carrefour, Americanas, Fast
+        # Shop) — comparar o máximo de ofertas possível é o pedido do
+        # usuário ("quero que todos os produtos estejam com todos os
+        # links de todas as marcas funcionando" + depois "eu queria ter
+        # mais opções de lugares para comprar" + "eu pedi OPÇÕES, não uma
+        # opção a mais"), MAS Carrefour/Americanas/Fast Shop só têm dado
+        # real pra ALGUNS produtos (WebSearch não acha tudo, e vários
+        # links indexados já saíram do ar) — incluir uma delas em produto
+        # SEM entrada real repetiria o mesmo bug corrigido 2x nesta sessão
+        # (Carrefour no Electrolux DF44, Bemol no LG): sem `Price.url`, a
+        # oferta cai no fallback de HOMEPAGE, que parece um link quebrado/
+        # sem sentido pro usuário. Por isso, diferente da Amazon (busca
+        # sempre funciona, entra sempre), essas três só entram no produto
+        # onde JÁ existe uma URL real confirmada em `lojas_reais` —
+        # garante estruturalmente que NENHUMA oferta delas caia em
+        # homepage, mesmo pra loja nova/produto futuro que eu esqueça de
+        # pesquisar por completo.
         lojas_online = [l for l in lojas if l.type == Store.TIPO_ONLINE]
         lojas_fisicas = [l for l in lojas if l.type == Store.TIPO_FISICA]
 
         selecionadas = []
-        for nome in ("Amazon", "Carrefour", "Americanas"):
+        for nome in ("Amazon", "Carrefour", "Americanas", "Fast Shop"):
             loja_universal = next((l for l in lojas_online if l.name == nome), None)
             if loja_universal and (nome == "Amazon" or nome in lojas_reais):
                 selecionadas.append(loja_universal)

@@ -766,6 +766,23 @@ Carrefour/Americanas sobrando; toda oferta mostrada tem link real
 (Amazon/Carrefour/Americanas/loja da marca/Bemol) ou estado honesto
 ("Esgotado"/"Sem site") quando não tem.
 
+## Fast Shop adicionada (usuário: "eu pedi OPÇÕES, não uma opção a mais")
+
+Usuário reclamou — com razão — que só Americanas não era "opções" no
+plural. Duas outras candidatas já tinham sido descartadas antes (Ponto/
+Leroy Merlin bloqueiam com 403 — mesma família Casas Bahia — e Kabum tem
+catálogo fraco pras nossas marcas), mas **Fast Shop** só tinha passado no
+teste de `robots.txt` sem eu ter ido atrás do catálogo de verdade —
+corrigido agora: `site.fastshop.com.br` (não `www.fastshop.com.br`, que
+só redireciona pra ela) é VTEX, robots.txt limpo, e achei dado real
+(JSON-LD, preço + estoque, não só URL) pra 3 dos 10 produtos (Brastemp
+BRM44, Consul CRB39, LG GC-B) — os outros 7 links indexados que testei
+já tinham saído do ar (404).
+
+Mesma regra estrutural das outras (ver seção acima): Fast Shop só entra
+na seleção de lojas de um produto onde já existe `Price.url` real —
+nunca aparece com link de homepage.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
