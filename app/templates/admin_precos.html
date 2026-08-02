@@ -20,6 +20,12 @@
     não a fonte principal (isso vem do scraping automático). Editar aqui
     muda o preço ATUAL; o histórico do gráfico não é reescrito.
   </p>
+  <p class="text-sm text-ink-muted mt-2 mb-8 max-w-2xl">
+    "Preço original" é opcional — preenchido, mostra riscado no site com o
+    preço atual em destaque (promoção). Deixe vazio pra não marcar
+    nenhuma promoção. Depois que os "dias de validade" passarem, volta
+    sozinho a mostrar só o preço normal, sem precisar editar de novo.
+  </p>
 
   {% with mensagens = get_flashed_messages(with_categories=true) %}
     {% if mensagens %}
@@ -69,6 +75,8 @@
               <tr class="border-b border-border text-left text-ink-muted">
                 <th class="px-4 py-2.5 font-medium">Loja</th>
                 <th class="px-4 py-2.5 font-medium">Preço (R$)</th>
+                <th class="px-4 py-2.5 font-medium">Preço original (promoção)</th>
+                <th class="px-4 py-2.5 font-medium">Dias de validade</th>
                 <th class="px-4 py-2.5 font-medium">Em estoque</th>
                 <th class="px-4 py-2.5 font-medium"></th>
               </tr>
@@ -81,12 +89,34 @@
                     {% if preco.store.type == "fisica" %}
                       <span class="text-xs text-ink-faint">({{ preco.store.city }})</span>
                     {% endif %}
+                    {% if preco.promocao_ativa %}
+                      <span class="block text-[10px] font-bold uppercase text-red-500 mt-0.5">
+                        -{{ preco.percentual_desconto }}% até {{ preco.promo_valid_until.strftime('%d/%m') }}
+                      </span>
+                    {% endif %}
                   </td>
                   <td class="px-4 py-2.5">
                     <input
                       form="form-preco-{{ preco.id }}"
                       type="text" name="price" value="{{ '%.2f'|format(preco.price)|replace('.', ',') }}"
                       class="w-24 px-2 py-1.5 rounded-lg bg-elevated border border-border text-ink
+                             focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                  </td>
+                  <td class="px-4 py-2.5">
+                    <input
+                      form="form-preco-{{ preco.id }}"
+                      type="text" name="original_price" placeholder="vazio = sem promo"
+                      value="{{ '%.2f'|format(preco.original_price)|replace('.', ',') if preco.original_price else '' }}"
+                      class="w-28 px-2 py-1.5 rounded-lg bg-elevated border border-border text-ink placeholder:text-ink-faint
+                             focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                  </td>
+                  <td class="px-4 py-2.5">
+                    <input
+                      form="form-preco-{{ preco.id }}"
+                      type="number" name="promo_dias" min="1" placeholder="5"
+                      class="w-16 px-2 py-1.5 rounded-lg bg-elevated border border-border text-ink placeholder:text-ink-faint
                              focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                   </td>

@@ -34,9 +34,19 @@
         A partir de
         {% if produto.melhor_oferta %}<span class="text-ink-faint">— {{ produto.melhor_oferta.store.name }}</span>{% endif %}
       </p>
-      <p class="font-display text-xl font-bold text-ink">
-        R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}
-      </p>
+      {% if produto.melhor_oferta and produto.melhor_oferta.promocao_ativa %}
+        <p class="text-xs text-ink-faint line-through">R$ {{ "%.2f"|format(produto.melhor_oferta.original_price)|replace(".", ",") }}</p>
+        <p class="font-display text-xl font-bold text-red-500 flex items-center gap-1.5">
+          R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}
+          <span class="text-[10px] font-bold uppercase bg-red-600 text-white px-1.5 py-0.5 rounded-full whitespace-nowrap">
+            -{{ produto.melhor_oferta.percentual_desconto }}%
+          </span>
+        </p>
+      {% else %}
+        <p class="font-display text-xl font-bold text-ink">
+          R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}
+        </p>
+      {% endif %}
       {% if produto.price_max and produto.price_max != produto.price_min %}
         <p class="text-xs text-ink-faint">até R$ {{ "%.2f"|format(produto.price_max)|replace(".", ",") }}</p>
       {% endif %}

@@ -33,7 +33,17 @@
       {% endif %}
 
       <p class="mt-4 text-sm text-ink-muted">A partir de</p>
-      <p class="font-display text-4xl font-bold text-ink">R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}</p>
+      {% if produto.melhor_oferta and produto.melhor_oferta.promocao_ativa %}
+        <p class="text-base text-ink-faint line-through">R$ {{ "%.2f"|format(produto.melhor_oferta.original_price)|replace(".", ",") }}</p>
+        <p class="font-display text-4xl font-bold text-red-500 flex items-center flex-wrap gap-2">
+          R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}
+          <span class="text-xs font-bold uppercase bg-red-600 text-white px-2 py-1 rounded-full align-middle whitespace-nowrap">
+            -{{ produto.melhor_oferta.percentual_desconto }}%
+          </span>
+        </p>
+      {% else %}
+        <p class="font-display text-4xl font-bold text-ink">R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}</p>
+      {% endif %}
       {% if produto.price_max and produto.price_max != produto.price_min %}
         <p class="text-sm text-ink-faint">até R$ {{ "%.2f"|format(produto.price_max)|replace(".", ",") }} em outras lojas</p>
       {% endif %}
@@ -91,8 +101,18 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-5 py-4 font-display font-bold text-ink whitespace-nowrap">
-                  R$ {{ "%.2f"|format(oferta.preco)|replace(".", ",") }}
+                <td class="px-5 py-4 whitespace-nowrap">
+                  {% if oferta.promocao_ativa %}
+                    <p class="text-xs text-ink-faint line-through">R$ {{ "%.2f"|format(oferta.preco_original)|replace(".", ",") }}</p>
+                    <p class="font-display font-bold text-lg text-red-500 flex items-center gap-1.5">
+                      R$ {{ "%.2f"|format(oferta.preco)|replace(".", ",") }}
+                      <span class="text-[10px] font-bold uppercase bg-red-600 text-white px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                        -{{ oferta.percentual_desconto }}%
+                      </span>
+                    </p>
+                  {% else %}
+                    <p class="font-display font-bold text-ink">R$ {{ "%.2f"|format(oferta.preco)|replace(".", ",") }}</p>
+                  {% endif %}
                 </td>
                 <td class="px-5 py-4 text-ink-muted hidden sm:table-cell">{{ oferta.frete }}</td>
                 <td class="px-5 py-4 text-ink-faint hidden sm:table-cell whitespace-nowrap">{{ oferta.atualizado_ha }}</td>

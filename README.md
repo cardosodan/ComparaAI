@@ -863,6 +863,79 @@ anterior, que não indicava nada sobre o produto em si, agora o usuário vê
 exatamente qual vendedor/modelo está sem estoque, com um link real que ele
 pode conferir.
 
+## Promoções temporárias — preço original riscado + desconto chamativo + reversão automática
+
+Usuário reportou que "vários valores não estão 100% atualizados porque
+estão com promoções temporárias" e pediu: risco no preço original, preço
+com desconto bem chamativo, e reversão automática quando a promoção
+acabar.
+
+**Achado real, verificado (não um "% OFF" genérico de banner de
+pagamento)**: páginas VTEX embutem o estado do Apollo/GraphQL cache no
+próprio HTML, com chaves `"...priceRange.listPrice":{"highPrice":X}` e
+`"...priceRange.sellingPrice":{"highPrice":Y}` — quando `X > Y`, é uma
+promoção "de/por" de verdade DAQUELE produto específico, não um cupom
+genérico de site inteiro. Rechecando as 33 URLs com preço real já
+registradas (mesma disciplina de sempre: comparar o valor achado com o
+`preco` já gravado, não confiar em regex solto de "% OFF" — isso pegava
+banners tipo "10% no PIX" que não têm nada a ver com desconto real do
+produto), achei **3 promoções ativas de verdade**:
+- Electrolux DF44 na loja oficial da Electrolux: de R$3.789 por R$3.469 (~8%)
+- Electrolux IF55 na loja oficial da Electrolux: de R$5.649 por R$4.399 (~22%)
+- Brastemp BRM44 na loja oficial da Brastemp: de R$3.329 por R$3.089 (~7%)
+
+**Schema** (`Price` em `models.py`): `original_price` (Numeric, nullable)
+e `promo_valid_until` (DateTime, nullable) — migração
+`b251def96920_adiciona_original_price_e_promo_valid_.py`. Três
+properties computadas (não colunas gravadas, pra nunca dessincronizar):
+- `promocao_ativa` — só True se `original_price > price` E (`promo_valid_until`
+  nulo OU ainda no futuro).
+- `preco_atual` — o preço EFETIVO pra exibir/comparar. Quando o prazo já
+  passou, devolve `original_price` sozinho, sem precisar de nenhum job/cron
+  reescrever `price` — a checagem é feita a cada acesso (`datetime.utcnow()`
+  comparado na hora). **É isso que resolve "quando acabar a promoção você
+  volta o preço ao normal"**: basta alguém abrir a página depois do prazo.
+- `percentual_desconto` — só calculado quando `promocao_ativa`.
+
+`Product.price_min`/`price_max`/`melhor_oferta` e a ordenação/filtro de
+preço em `search.py` já usavam essas properties de forma indireta (todas
+passam por `Price`), então comparam por `preco_atual` automaticamente —
+uma promoção vencida não engana o "Melhor preço" nem os filtros de faixa
+de preço achando que ainda está mais barata do que está.
+
+**Template**: `produto.html` (hero + tabela comparativa) e
+`product_card.html` (card de busca/similares) mostram o preço original
+riscado (`line-through`, cinza) + o preço atual em destaque (vermelho,
+maior, com badge "-X%") só quando `promocao_ativa`; sem promoção, mostra
+só o preço normal como sempre. Aplicado nos 3 níveis onde preço aparece —
+card, hero da página de produto, linha da tabela por loja — pra ficar
+"bem chamativo" em qualquer lugar que o usuário veja o produto, não só
+num.
+
+**Painel admin** (`/admin`) ganhou 2 campos por oferta: "Preço original"
+(vazio = sem promoção) e "Dias de validade" (relativo a agora, não uma
+data fixa — mais simples de preencher). Fecha o loop pra quem for
+gerenciar isso na mão no futuro, mesmo padrão de "loja física parceira
+atualizando o próprio preço" que o painel já simulava.
+
+**Scraper automático** (`atualizacao_precos.py`): qualquer atualização
+real de preço agora limpa `original_price`/`promo_valid_until` de
+propósito — um scrape fresco sempre vence uma promoção simulada/antiga
+gravada na mão, nunca compara um `price` novo contra um desconto que não
+tem mais nada a ver com ele.
+
+**Testado**: reseed com as 3 promoções reais (curl confirmou riscado +
+badge "-22%" na Electrolux IF55) e simulação direta no banco — forcei
+`promo_valid_until` pro passado e confirmei que `preco_atual` volta
+sozinho pro `original_price`, sem editar mais nada.
+
+**Fora do escopo desta rodada**: o SCRAPER automático ainda não detecta
+promoção sozinho (só extrai `price` simples via JSON-LD/Playwright/Groq,
+sem o padrão `listPrice`/`sellingPrice` usado aqui) — isso foi feito só
+pra popular os dados mockados desta vez. Ensinar `atualizacao_precos.py`
+a reconhecer esse padrão em toda página VTEX seria o próximo passo
+natural se isso virar prioridade.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo

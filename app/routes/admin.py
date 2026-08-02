@@ -9,9 +9,15 @@ vazar quanto da string bateu certo através do tempo de resposta — barato
 de fazer, sem custo de legibilidade, então sem motivo pra pular mesmo
 sendo um único usuário fixo. Sessão guarda só um booleano
 (`admin_logado`), nunca a senha em si.
+
+Também dá pra marcar/desmarcar uma promoção temporária aqui (preço
+original riscado + prazo de validade — ver Price.promocao_ativa em
+models.py) — é o mesmo tipo de "loja física parceira atualizando o
+próprio preço" que o resto do painel já simula, só que pra um desconto
+com prazo em vez de um preço fixo.
 """
 import hmac
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
@@ -85,7 +91,27 @@ def editar_preco(price_id):
         flash(f"Preço inválido pra {preco.product.name} — {preco.store.name}. Nada foi salvo.", "erro")
         return redirect(url_for("admin.listar_precos"))
 
+    # Promoção é OPCIONAL: campo "Preço original" vazio/0 = sem promoção
+    # (limpa os dois campos, mesmo que já existisse uma antes — forma mais
+    # simples de "cancelar" uma promoção na mão sem precisar de um botão
+    # separado). Preenchido = grava original + calcula o prazo a partir de
+    # "dias de validade" (relativo a agora, não uma data fixa digitada —
+    # mais simples pra quem tá preenchendo o formulário).
+    preco_original = _parsear_preco(request.form.get("original_price", ""))
+    dias_validade = request.form.get("promo_dias", "").strip()
+
     preco.price = novo_preco
+    if preco_original is not None and preco_original > novo_preco:
+        preco.original_price = preco_original
+        try:
+            dias = int(dias_validade) if dias_validade else 5
+        except ValueError:
+            dias = 5
+        preco.promo_valid_until = datetime.utcnow() + timedelta(days=max(dias, 1))
+    else:
+        preco.original_price = None
+        preco.promo_valid_until = None
+
     preco.in_stock = "in_stock" in request.form
     preco.last_updated = datetime.utcnow()
     db.session.commit()

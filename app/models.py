@@ -7,6 +7,7 @@ guarda "o preço" diretamente — preço é sempre uma relação produto+loja
 MESMO produto entre lojas diferentes.
 """
 from datetime import datetime
+from decimal import Decimal
 
 from app import db
 
@@ -79,20 +80,22 @@ class Product(db.Model):
     @property
     def price_min(self):
         precos = self.precos_em_estoque or self.prices
-        return min((p.price for p in precos), default=None)
+        return min((p.preco_atual for p in precos), default=None)
 
     @property
     def price_max(self):
         precos = self.precos_em_estoque or self.prices
-        return max((p.price for p in precos), default=None)
+        return max((p.preco_atual for p in precos), default=None)
 
     @property
     def melhor_oferta(self):
-        """A oferta mais barata em estoque — usada pro badge "Melhor preço"."""
+        """A oferta mais barata em estoque — usada pro badge "Melhor preço".
+        Compara por `preco_atual` (não `price` puro), então uma promoção
+        vencida não engana a comparação achando que ainda é a mais barata."""
         precos = self.precos_em_estoque
         if not precos:
             return None
-        return min(precos, key=lambda p: p.price)
+        return min(precos, key=lambda p: p.preco_atual)
 
     def __repr__(self):
         return f"<Product {self.brand} {self.model}>"
@@ -128,6 +131,15 @@ class Price(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
     store_id = db.Column(db.Integer, db.ForeignKey("stores.id"), nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
+    # Promoção temporária (pedido do usuário: "risquinho no preço original +
+    # preço com desconto bem chamativo, e quando acabar a promoção volta ao
+    # normal"). Os dois só têm sentido juntos: `original_price` é o preço
+    # "de", `price` continua sendo o preço "por" (atual/com desconto)
+    # enquanto a promoção estiver ativa. `promo_valid_until` nulo = sem
+    # prazo conhecido (promoção considerada ativa indefinidamente, até
+    # alguém atualizar os campos na mão ou um scrape real sobrescrever).
+    original_price = db.Column(db.Numeric(10, 2))
+    promo_valid_until = db.Column(db.DateTime)
     url = db.Column(db.String(400))
     in_stock = db.Column(db.Boolean, default=True, nullable=False)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -136,6 +148,35 @@ class Price(db.Model):
     store = db.relationship("Store", back_populates="prices")
 
     __table_args__ = (db.UniqueConstraint("product_id", "store_id", name="uq_price_produto_loja"),)
+
+    @property
+    def promocao_ativa(self) -> bool:
+        """Só é promoção de verdade se o preço original for maior que o
+        atual (não um dado inconsistente) E o prazo (quando existe) ainda
+        não passou."""
+        if not self.original_price or self.original_price <= self.price:
+            return False
+        if self.promo_valid_until is not None and self.promo_valid_until <= datetime.utcnow():
+            return False
+        return True
+
+    @property
+    def preco_atual(self) -> Decimal:
+        """Preço efetivo pra exibir/comparar. Quando a promoção tem prazo
+        gravado e ele já passou, volta pro preço original SOZINHO — não
+        depende de nenhum job/cron reescrever `price`, só de alguém abrir
+        a página depois do prazo (a checagem acontece na hora, a cada
+        acesso)."""
+        if self.original_price is not None and self.promo_valid_until is not None \
+                and self.promo_valid_until <= datetime.utcnow():
+            return self.original_price
+        return self.price
+
+    @property
+    def percentual_desconto(self) -> int | None:
+        if not self.promocao_ativa:
+            return None
+        return round((1 - float(self.price) / float(self.original_price)) * 100)
 
     def __repr__(self):
         return f"<Price {self.product_id}@{self.store_id} R${self.price}>"

@@ -299,6 +299,13 @@ def atualizar_oferta(preco: Price) -> bool:
     preco.price = dados["preco"]
     preco.in_stock = bool(dados.get("em_estoque", True))
     preco.last_updated = agora
+    # Um scrape real e fresco sempre vence qualquer promoção simulada
+    # gravada na mão (ver seed_data.py/admin) — sem isso, um
+    # `original_price`/`promo_valid_until` antigo continuaria sendo
+    # comparado contra um `price` novo que não tem nada a ver com aquela
+    # promoção específica, mostrando desconto/prazo que não existe mais.
+    preco.original_price = None
+    preco.promo_valid_until = None
     if dados.get("imagem_url") and not preco.product.image_url:
         preco.product.image_url = dados["imagem_url"]
 

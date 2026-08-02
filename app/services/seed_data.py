@@ -210,9 +210,16 @@ PRODUTOS = [
             # sempre 503 pra qualquer busca; a loja de verdade é
             # loja.electrolux.com.br, achada via WebSearch, mesma
             # plataforma VTEX de Bemol/Brastemp/Consul).
+            # PROMOÇÃO REAL confirmada: o estado embutido da página (VTEX
+            # Apollo/GraphQL cache, chave `priceRange.listPrice` vs.
+            # `priceRange.sellingPrice` — não é um "% OFF" genérico de
+            # banner de pagamento, é o preço "de/por" específico deste
+            # produto) mostra `listPrice=3789` vs. `sellingPrice=3469`
+            # (nosso `preco` já registrado) — ~8% de desconto ativo agora.
             "Electrolux": {
                 "url": "https://loja.electrolux.com.br/geladeira-refrigerador-frost-free-371-litros-dfn41/p",
                 "preco": 3469.00, "em_estoque": True,
+                "preco_original": 3789.00, "promo_dias": 6,
                 "imagem": "https://electrolux.vtexassets.com/arquivos/ids/214052/Refrigerador_DFN41_Frontal_1000x1000_principal.jpg?v=638804364273430000",
             },
             # Mesmo modelo DFN41 no Carrefour — 1ª rodada de busca só achou
@@ -267,9 +274,13 @@ PRODUTOS = [
                 "imagem": "https://bemol.vtexassets.com/arquivos/ids/613701/238944.jpg?v=639167831135570000",
             },
             # Mesmo modelo IB7S no site oficial da Electrolux (loja.electrolux.com.br).
+            # PROMOÇÃO REAL confirmada (mesma técnica da DF44 acima):
+            # `listPrice=5649` vs. `sellingPrice=4399` — ~22% de desconto
+            # ativo agora, o maior dos 3 achados nesta rodada.
             "Electrolux": {
                 "url": "https://loja.electrolux.com.br/geladeira-electrolux-frost-free-490l-efficient-com-autosense-inverse-inox-look--ib7s-/p",
                 "preco": 4399.00, "em_estoque": True,
+                "preco_original": 5649.00, "promo_dias": 4,
                 "imagem": "https://electrolux.vtexassets.com/arquivos/ids/288571/Refrigerator_IB7S_Front_Electrolux_Portuguese-1000x1000.raw.jpg?v=639046841437700000",
             },
             # Mesmo modelo IB7S no Carrefour (também VTEX) — JSON-LD achado,
@@ -310,9 +321,13 @@ PRODUTOS = [
                 "imagem": "https://bemol.vtexassets.com/arquivos/ids/398580/194468.jpg?v=639090093114030000",
             },
             # Mesmo modelo BRM44 de verdade, achado no sitemap oficial da Brastemp.
+            # PROMOÇÃO REAL confirmada (mesma técnica das Electrolux acima):
+            # `listPrice=3329` vs. `sellingPrice=3089` — ~7% de desconto
+            # ativo agora.
             "Brastemp": {
                 "url": "https://www.brastemp.com.br/geladeira-brastemp-frost-free-375-litros-brm44hb/p",
                 "preco": 3089.00, "em_estoque": False,
+                "preco_original": 3329.00, "promo_dias": 8,
                 "imagem": "https://brastemp.vtexassets.com/arquivos/ids/285442/01_Brastemp_Geladeira_BRM44HB_Imagem_Frontal_Fechada.jpg?v=639120439093400000",
             },
             # Mesmo modelo BRM44HB no Carrefour — JSON-LD real, em estoque.
@@ -767,12 +782,27 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
             else:
                 em_estoque = random.random() > 0.08  # ~92% em estoque, resto "esgotado" (realismo)
 
+            # Promoção temporária REAL (só 3 lojas hoje — ver comentários
+            # pontuais em `lojas_reais`, achadas comparando o estado
+            # embutido `priceRange.listPrice` vs. `priceRange.sellingPrice`
+            # de cada página VTEX, não um "% OFF" genérico de banner).
+            # `promo_dias` é relativo ao momento do seed (não uma data fixa
+            # gravada no dicionário) — do mesmo jeito que `atualizado_ha_horas`
+            # já é relativo a "agora" logo abaixo.
+            preco_original = None
+            promo_valid_until = None
+            if dado_real and "preco_original" in dado_real:
+                preco_original = Decimal(str(dado_real["preco_original"]))
+                promo_valid_until = datetime.utcnow() + timedelta(days=dado_real.get("promo_dias", 5))
+
             atualizado_ha_horas = random.randint(1, 6) if usou_dado_real else random.randint(1, 30)
 
             db.session.add(Price(
                 product=produto,
                 store=loja,
                 price=preco,
+                original_price=preco_original,
+                promo_valid_until=promo_valid_until,
                 url=url,
                 in_stock=em_estoque,
                 last_updated=datetime.utcnow() - timedelta(hours=atualizado_ha_horas),
