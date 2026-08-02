@@ -42,3 +42,11 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     GROQ_API_KEY = os.environ.get("GROQ_API_KEY") or ""
+
+    # Login do painel admin (Passo 8) — credenciais fixas de propósito
+    # (usuário pediu literalmente "usuario admin, senha admin12345"), mas
+    # configuráveis via variável de ambiente pra quem for colocar em
+    # produção poder trocar sem editar código (ver README, seção do login
+    # admin, pra trocar isso no Railway).
+    ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME") or "admin"
+    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD") or "admin12345"

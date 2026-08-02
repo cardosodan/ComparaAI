@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Login administrativo — ComparaAI{% endblock %}
+
+{% block content %}
+<div class="max-w-sm mx-auto px-4 sm:px-6 py-16">
+  <p class="text-sm font-semibold text-accent uppercase tracking-wide text-center">Painel administrativo</p>
+  <h1 class="font-display text-2xl font-bold text-ink mt-1 mb-8 text-center">Entrar</h1>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+      <div class="space-y-2 mb-6">
+        {% for categoria, texto in mensagens %}
+          <div class="text-sm px-4 py-3 rounded-xl border
+                      {% if categoria == 'sucesso' %}bg-accent/10 text-accent border-accent/30
+                      {% else %}bg-red-500/10 text-red-400 border-red-500/30{% endif %}">
+            {{ texto }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" class="bg-surface border border-border rounded-2xl p-6 space-y-4">
+    <div>
+      <label for="usuario" class="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5">Usuário</label>
+      <input
+        id="usuario" type="text" name="usuario" autocomplete="username" required autofocus
+        class="w-full px-3 py-2.5 rounded-lg bg-elevated border border-border text-ink
+               placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-accent"
+      >
+    </div>
+    <div>
+      <label for="senha" class="block text-xs font-semibold text-ink-muted uppercase tracking-wide mb-1.5">Senha</label>
+      <input
+        id="senha" type="password" name="senha" autocomplete="current-password" required
+        class="w-full px-3 py-2.5 rounded-lg bg-elevated border border-border text-ink
+               placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-accent"
+      >
+    </div>
+    <button type="submit"
+            class="w-full bg-accent hover:bg-accent-hover text-accent-ink font-display font-bold py-2.5 rounded-lg transition-colors">
+      Entrar
+    </button>
+  </form>
+</div>
+{% endblock %}

@@ -302,18 +302,13 @@ narrativa "preço caindo" do seed).
 
 ## Painel admin (Passo 8)
 
-`/admin/precos` — **sem autenticação de propósito** (brief seção 6.4 é
-explícito: "não precisa de auth ainda"), simula o fluxo que uma loja
-física parceira vai usar no futuro pra atualizar o próprio preço. Um
-`<form>` por oferta (produto+loja), preço + em-estoque editáveis, "Salvar"
-individual. Aceita preço digitado com vírgula OU ponto decimal
-(`2799,90` ou `2799.90`) — usuário de loja física não deveria precisar
-pensar em formato. Preço inválido mostra erro e não salva nada (testado).
-
-**Limitação conhecida, documentada de propósito**: sem login, esta rota
-fica acessível a qualquer um que souber a URL — aceitável só porque é
-Fase 1/dado mockado; autenticação de verdade é pré-requisito antes de
-qualquer dado real entrar aqui.
+`/admin` (ver seção própria mais abaixo pra login — na época deste Passo
+ainda não existia) simula o fluxo que uma loja física parceira vai usar
+no futuro pra atualizar o próprio preço. Um `<form>` por oferta
+(produto+loja), preço + em-estoque editáveis, "Salvar" individual. Aceita
+preço digitado com vírgula OU ponto decimal (`2799,90` ou `2799.90`) —
+usuário de loja física não deveria precisar pensar em formato. Preço
+inválido mostra erro e não salva nada (testado).
 
 Testado de ponta a ponta com curl + sessão de cookies (não só assumido):
 POST editando preço + desmarcando estoque → banco realmente atualizado
@@ -689,6 +684,47 @@ misturar marca errada com produto errado.
   deslizando, `peer-checked` do Tailwind) — mais claro visualmente que uma
   checkbox nua, mesmo funcionamento por baixo (`name="in_stock"`, ligado
   ao `<form>` via atributo `form=`, como já era).
+
+## Login do painel admin + rota /admin (não mais /admin/precos)
+
+Pedido do usuário: tela de login (usuário `admin`, senha `admin12345`)
+protegendo o painel, e a URL virar `/admin` em vez de `/admin/precos`.
+
+- **Credenciais configuráveis, não hardcoded**: `Config.ADMIN_USERNAME`/
+  `ADMIN_PASSWORD` (`config.py`) leem de variável de ambiente
+  (`ADMIN_USERNAME`/`ADMIN_PASSWORD` no `.env`), com fallback pros
+  valores exatos pedidos (`admin`/`admin12345`) — mesmo padrão já
+  estabelecido pra `SECRET_KEY`/`GROQ_API_KEY`. Pra trocar a senha em
+  produção (Railway), é só definir essas duas variáveis no painel do
+  serviço — nenhum código muda.
+- **Sessão, não cookie com a senha**: login bem-sucedido grava só
+  `session["admin_logado"] = True` (sessão do Flask, assinada com
+  `SECRET_KEY` — não dá pra falsificar sem saber a chave); a senha em si
+  nunca é gravada em lugar nenhum além da comparação no momento do
+  login.
+- **`hmac.compare_digest`** em vez de `==` pra comparar usuário/senha —
+  comparação em tempo constante, não vaza (por quanto tempo a resposta
+  demora) quantos caracteres bateram certo. Baixo custo de implementar,
+  sem motivo pra pular mesmo com usuário fixo único.
+- **`login_necessario`** (decorator simples, `functools.wraps`) protege
+  `listar_precos`/`editar_preco` — sem sessão válida, redireciona pra
+  `/admin/login`.
+- **Rota**: `listar_precos` virou `@admin_bp.route("", strict_slashes=False)`
+  (blueprint já tem `url_prefix="/admin"`, então isso resolve exatamente
+  em `/admin`, sem precisar de `/admin/` com barra nem redirect extra —
+  testado que bate 302 direto pro login numa hop só, não 308→302 como
+  aconteceria com `route("/")`). `editar_preco` virou
+  `/admin/<id>/editar` (era `/admin/precos/<id>/editar`) — nenhum
+  template precisou mudar, todos já usavam `url_for('admin.editar_preco', ...)`
+  em vez de string fixa.
+- Novo `admin_login.html` (formulário simples, mesmo estilo visual do
+  resto do painel) + botão "Sair" (`/admin/logout`) no topo de
+  `admin_precos.html`.
+
+Testado de ponta a ponta com curl + cookies: sem login → `/admin`
+redireciona pro login; senha errada → fica de fora; senha certa → entra;
+logout → tranca de novo. `/admin/precos` (rota antiga) agora dá 404, como
+esperado.
 
 ## Estrutura
 

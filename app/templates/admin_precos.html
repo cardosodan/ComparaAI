@@ -4,13 +4,21 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-  <p class="text-sm font-semibold text-accent uppercase tracking-wide">Painel administrativo</p>
-  <h1 class="font-display text-2xl font-bold text-ink mt-1">Editar preços</h1>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <p class="text-sm font-semibold text-accent uppercase tracking-wide">Painel administrativo</p>
+      <h1 class="font-display text-2xl font-bold text-ink mt-1">Editar preços</h1>
+    </div>
+    <a href="{{ url_for('admin.logout') }}"
+       class="text-xs font-bold bg-elevated hover:bg-accent hover:text-accent-ink text-ink px-3 py-2 rounded-lg transition-colors whitespace-nowrap">
+      Sair
+    </a>
+  </div>
   <p class="text-sm text-ink-muted mt-2 mb-8 max-w-2xl">
     Simula o fluxo que uma loja física parceira vai usar no futuro pra
-    atualizar o próprio preço (brief seção 6.4) — sem login ainda
-    (Fase 1). Editar aqui muda o preço ATUAL; o histórico do gráfico não
-    é reescrito.
+    atualizar o próprio preço (brief seção 6.4) — recurso de emergência,
+    não a fonte principal (isso vem do scraping automático). Editar aqui
+    muda o preço ATUAL; o histórico do gráfico não é reescrito.
   </p>
 
   {% with mensagens = get_flashed_messages(with_categories=true) %}
