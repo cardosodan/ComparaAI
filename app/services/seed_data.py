@@ -29,7 +29,7 @@ CATEGORIAS = [
     {"name": "Geladeiras", "slug": "geladeiras", "icon": "refrigerator", "active": True},
     {"name": "Fogões", "slug": "fogoes", "icon": "flame", "active": False},
     {"name": "Lava-louças", "slug": "lava-loucas", "icon": "utensils", "active": False},
-    {"name": "Micro-ondas", "slug": "micro-ondas", "icon": "microwave", "active": False},
+    {"name": "Micro-ondas", "slug": "micro-ondas", "icon": "microwave", "active": True},
     {"name": "Máquina de Lavar", "slug": "maquina-de-lavar", "icon": "washing-machine", "active": False},
     {"name": "Ar-condicionado", "slug": "ar-condicionado", "icon": "wind", "active": False},
     {"name": "Aspirador de Pó", "slug": "aspirador-de-po", "icon": "fan", "active": False},
@@ -163,6 +163,21 @@ LOJAS = [
         "trust_score": 4.7,
     },
     {
+        # Panasonic — marca própria, entrando com a categoria Micro-ondas
+        # (Samsung não tem presença real de verdade nesse mercado no
+        # Brasil, confirmado por WebSearch — Panasonic é historicamente
+        # uma das marcas mais fortes de micro-ondas aqui, então entrou no
+        # lugar dela pra essa categoria). "Loja de Parceiros Panasonic"
+        # (parceiros.panasonic.com.br) é a loja oficial/autorizada da
+        # marca no Brasil — mesma plataforma VTEX das outras marcas,
+        # JSON-LD real.
+        "name": "Panasonic",
+        "type": Store.TIPO_ONLINE,
+        "website_url": "https://parceiros.panasonic.com.br",
+        "logo_url": "/static/img/lojas/panasonic.svg",
+        "trust_score": 4.4,
+    },
+    {
         "name": "Bemol",
         "type": Store.TIPO_FISICA,
         "city": "Manaus",
@@ -257,7 +272,7 @@ LOJAS = [
 # produto estará disponível novamente" — sem preço nenhum pra registrar,
 # então a Amazon só aparece nos poucos produtos onde teve preço real
 # confirmado em estoque no momento da verificação.
-PRODUTOS = [
+PRODUTOS_GELADEIRAS = [
     {
         "brand": "Electrolux", "model": "DF44", "nome_curto": "Frost Free 382L",
         "specs": {"capacidade_litros": 382, "frost_free": True, "cor": "Branca",
@@ -840,6 +855,189 @@ PRODUTOS = [
     },
 ]
 
+# Micro-ondas (2ª categoria com produto de verdade, depois de Geladeiras)
+# — mesmas 5 marcas quando fizeram sentido, EXCETO Samsung: WebSearch
+# confirmou que a Samsung não tem presença de catálogo real de
+# micro-ondas no Brasil (os resultados de busca só retornavam produtos
+# de Portugal/África) — forçar ela aqui seria inventar uma marca que não
+# vende essa categoria de verdade aqui, o mesmo erro já corrigido antes
+# pra Bemol+LG em geladeiras. Panasonic entrou no lugar (marca
+# historicamente forte em micro-ondas no Brasil, catálogo real
+# confirmado, loja oficial "Parceiros Panasonic" também VTEX).
+#
+# Specs: `capacidade_litros`, `potencia_watts` (só quando confirmado —
+# várias fontes só davam "alta potência" sem número exato, e não vale
+# inventar um watts específico), `grill` (bool), `tipo` (Solo/Grill/
+# Embutir), `cor`, `voltagem`, `dimensoes_cm`.
+PRODUTOS_MICROONDAS = [
+    {
+        "brand": "Electrolux", "model": "MTO30", "nome_curto": "Solo 20L",
+        "specs": {"capacidade_litros": 20, "grill": False, "tipo": "Solo", "cor": "Branco"},
+        # Loja oficial da Electrolux — JSON-LD real, em estoque.
+        "lojas_reais": {
+            "Electrolux": {
+                "url": "https://loja.electrolux.com.br/micro-ondas-com-funcao-tira-odor-electrolux-mto30/p",
+                "preco": 529.00, "em_estoque": True,
+                "imagem": "https://electrolux.vtexassets.com/arquivos/ids/213875/Micro_ondas_MTO30_frontal_1000x1000.jpg?v=638796669337900000",
+            },
+        },
+    },
+    {
+        "brand": "Electrolux", "model": "MI41S", "nome_curto": "Painel Integrado 31L",
+        "specs": {"capacidade_litros": 31, "grill": False, "tipo": "Solo", "cor": "Inox Espelhado"},
+        # Loja oficial da Electrolux — JSON-LD real, em estoque.
+        "lojas_reais": {
+            "Electrolux": {
+                "url": "https://loja.electrolux.com.br/micro-ondas-painel-integrado-electrolux-mi41s/p",
+                "preco": 749.00, "em_estoque": True,
+                "imagem": "https://electrolux.vtexassets.com/arquivos/ids/213863/Micro-ondas_MI41S_frontal_1000x1000.jpg?v=638796662872700000",
+            },
+        },
+    },
+    {
+        "brand": "Brastemp", "model": "BMJ38AR", "nome_curto": "Ative Grill 38L",
+        "specs": {"capacidade_litros": 38, "grill": True, "tipo": "Grill", "cor": "Inox Espelhado"},
+        # Loja oficial da Brastemp — achado direto no JSON-LD embutido no
+        # HTML (não veio via BeautifulSoup script[type=application/ld+json],
+        # mas é o mesmo formato Product/Offer real). PROMOÇÃO REAL: de
+        # R$1.639 por R$1.027,80 (~37%, o maior desconto achado nesta
+        # categoria) — `listPrice` via estado embutido Apollo/GraphQL,
+        # mesma técnica já usada em Geladeiras.
+        "lojas_reais": {
+            "Brastemp": {
+                "url": "https://www.brastemp.com.br/micro-ondas-brastemp-ative-38l-bmj38ar/p",
+                "preco": 1027.80, "em_estoque": True,
+                "preco_original": 1639.00, "promo_dias": 7,
+                "imagem": "https://brastemp.vtexassets.com/arquivos/ids/255318/01_Brastemp_Micro_ondas_BMJ38AR_Imagem_Fechado--1-.png?v=638858514969700000",
+            },
+        },
+    },
+    {
+        "brand": "Brastemp", "model": "BMO45AR", "nome_curto": "Embutir Gourmand 40L",
+        "specs": {"capacidade_litros": 40, "grill": True, "tipo": "Embutir", "cor": "Inox"},
+        # Loja oficial da Brastemp — modelo de embutir premium (Sistema 3D
+        # + Sensor Cooking), a opção "mais exclusiva" desta categoria.
+        # PROMOÇÃO REAL: de R$16.499 por R$13.199,99 (~20%).
+        "lojas_reais": {
+            "Brastemp": {
+                "url": "https://www.brastemp.com.br/micro-ondas-de-embutir-brastemp-gourmand-40-litros-inox-com-sistema-3d-e-sensor-cooking--bmo45ar/p",
+                "preco": 13199.99, "em_estoque": True,
+                "preco_original": 16499.00, "promo_dias": 5,
+                "imagem": "https://brastemp.vtexassets.com/arquivos/ids/267249/01_Brastemp_Micro_ondas_BMO45AR_Imagem_Frontal.jpg?v=638974470401830000",
+            },
+        },
+    },
+    {
+        "brand": "Consul", "model": "CMS23AE", "nome_curto": "Marmita 23L",
+        "specs": {"capacidade_litros": 23, "grill": False, "tipo": "Solo", "cor": "Preto"},
+        # Loja oficial da Consul — JSON-LD real. PROMOÇÃO REAL: de R$599
+        # por R$504,90 (~16%). Modelo irmão CMS23AR (mesma capacidade,
+        # cor inox) achado real na Fast Shop — aproximação de cor,
+        # mesmo padrão já usado em Geladeiras (BRE85AK/BRO85ME etc.).
+        "lojas_reais": {
+            "Consul": {
+                "url": "https://www.consul.com.br/micro-ondas-consul-23l-preto-com-funcao-marmita-cms23ae/p",
+                "preco": 504.90, "em_estoque": True,
+                "preco_original": 599.00, "promo_dias": 6,
+                "imagem": "https://consul.vtexassets.com/arquivos/ids/283815/01_Consul_Micro_ondas_CMS23AE.jpg?v=639107534154700000",
+            },
+            "Fast Shop": {
+                "url": "https://site.fastshop.com.br/micro-ondas-23-litros-com-funcao-marmita-inox-consul---cms23ar-170159/p",
+                "preco": 619.00, "em_estoque": True,
+                "preco_original": 849.00, "promo_dias": 6,
+            },
+        },
+    },
+    {
+        "brand": "Consul", "model": "CMS46AB", "nome_curto": "Menu Fácil 32L",
+        "specs": {"capacidade_litros": 32, "grill": False, "tipo": "Solo", "cor": "Branco"},
+        # Loja oficial da Consul — JSON-LD real. PROMOÇÃO REAL: de R$969
+        # por R$604,80 (~38%).
+        "lojas_reais": {
+            "Consul": {
+                "url": "https://www.consul.com.br/micro-ondas-consul-32-litros-branco-com-menu-facil-cms46ab/p",
+                "preco": 604.80, "em_estoque": True,
+                "preco_original": 969.00, "promo_dias": 4,
+                "imagem": "https://consul.vtexassets.com/arquivos/ids/267975/01_Consul_Micro_ondas_CMS46AB_Imagem_Frontal.jpg?v=638975360656400000",
+            },
+        },
+    },
+    {
+        "brand": "LG", "model": "MS3043BR", "nome_curto": "Solo Limpa Fácil 30L",
+        "specs": {"capacidade_litros": 30, "grill": False, "tipo": "Solo", "cor": "Prata"},
+        # Site da LG — mesma limitação de sempre (JS-rendered, Akamai
+        # bloqueia Playwright): só URL + imagem reais, sem preço/estoque.
+        # Achado no Carrefour com preço real — reconferido AO VIVO com
+        # Playwright (não só JSON-LD estático, mesmo cuidado de sempre):
+        # sem aviso de indisponibilidade, mostra até um desconto real à
+        # vista no PIX (R$772,16 no cartão, R$749,00 no PIX, ~3%).
+        "lojas_reais": {
+            "LG": {
+                "url": "https://www.lg.com/br/micro-ondas/micro-ondas-solo/ms3043br/",
+                "imagem": "https://www.lg.com/content/dam/channel/wcms/br/images/fornos-microondas/ms3043br_fslflgz_essp_br_c/gallery/450.jpg",
+            },
+            "Carrefour": {
+                "url": "https://www.carrefour.com.br/microondas-lg-mesa-30-litros-prata-limpa-facil-ms3043br-110v-3503577/p",
+                "preco": 749.00, "em_estoque": True,
+                "preco_original": 772.16, "promo_dias": 10, "promo_pix": True,
+                "imagem": "https://carrefourbr.vtexassets.com/arquivos/ids/168195324/microondas-lg-ms3043br-20l-esp-110v-1.jpg?v=638588279386400000",
+            },
+        },
+    },
+    {
+        "brand": "LG", "model": "MH7093BRA", "nome_curto": "Grill Quartzo 30L",
+        "specs": {"capacidade_litros": 30, "grill": True, "tipo": "Grill", "cor": "Prata"},
+        # Site da LG — mesma limitação (sem preço/estoque real). Achado no
+        # Carrefour, mas CONFIRMADO ao vivo com Playwright: mesmo o
+        # JSON-LD estático dizendo "InStock" (desatualizado), a página
+        # renderizada mostra "não possui disponibilidade para entrega na
+        # sua região" — mesmo padrão de sempre, preço real registrado com
+        # `em_estoque: False`.
+        "lojas_reais": {
+            "LG": {
+                "url": "https://www.lg.com/br/micro-ondas/micro-ondas-grill/mh7093bra/",
+                "imagem": "https://www.lg.com/content/dam/channel/wcms/br/images/fornos-microondas/mh7093bra_fslglgz_essp_br_c/Thumb_450.jpg",
+            },
+            "Carrefour": {
+                "url": "https://www.carrefour.com.br/micro-ondas-lg-grill-mh7093bra-30-litros-prata-220v-5908442/p",
+                "preco": 879.00, "em_estoque": False,
+                "imagem": "https://carrefourbr.vtexassets.com/arquivos/ids/23639731/5908442_1.jpg?v=637660151320400000",
+            },
+        },
+    },
+    {
+        "brand": "Panasonic", "model": "NN-ST25", "nome_curto": "Antibacteria Ag 21L",
+        "specs": {"capacidade_litros": 21, "potencia_watts": 700, "grill": False, "tipo": "Solo",
+                   "cor": "Branco", "dimensoes_cm": "26 x 44.2 x 36.6"},
+        # Loja oficial "Parceiros Panasonic" — JSON-LD real (2 SKUs/cores
+        # com o mesmo preço; um deles OutOfStock, o outro InStock —
+        # usado o InStock).
+        "lojas_reais": {
+            "Panasonic": {
+                "url": "https://parceiros.panasonic.com.br/micro-ondas-panasonic-st25-branco-nn-st25lwru/p",
+                "preco": 569.05, "em_estoque": True,
+                "imagem": "https://panasonic.vtexassets.com/arquivos/ids/163258/Micro_Frontal_Branco.jpg?v=638786914020070000",
+            },
+        },
+    },
+    {
+        "brand": "Panasonic", "model": "NN-GT68", "nome_curto": "SmartSense Grill 30L",
+        "specs": {"capacidade_litros": 30, "potencia_watts": 900, "grill": True, "tipo": "Grill", "cor": "Preto"},
+        # Achado na Fast Shop — JSON-LD real. PROMOÇÃO REAL: de
+        # R$1.239,37 por R$1.099, mas `OutOfStock` (quantity: 0) —
+        # preço real registrado sem desconto em destaque (mesmo critério
+        # já usado em Geladeiras pra item esgotado: não faz sentido
+        # destacar promoção de algo que não dá pra comprar ali).
+        "lojas_reais": {
+            "Fast Shop": {
+                "url": "https://site.fastshop.com.br/micro-ondas-de-mesa-panasonic-com-30-litros-de-capacidade-e-grill-preto---nn-gt68lbru-panngt68l_prd/p",
+                "preco": 1099.00, "em_estoque": False,
+                "imagem": "https://fastshopbr.vtexassets.com/arquivos/ids/5293945/0_0_675b43a6447c42f8bd09ff9b.jpg?v=639202480184070000",
+            },
+        },
+    },
+]
+
 DIAS_DE_HISTORICO = 30
 
 
@@ -863,11 +1061,16 @@ def popular_lojas() -> list[Store]:
     return lojas
 
 
-def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]) -> list[Product]:
+def popular_produtos_e_precos(categoria: Category, lojas: list[Store], produtos_lista: list[dict]) -> list[Product]:
+    """Genérico por categoria desde que Fogões/Lava-louças/Micro-ondas
+    ganharam produtos de verdade — cada categoria tem sua própria lista
+    de dados (`PRODUTOS_GELADEIRAS`, `PRODUTOS_MICROONDAS`, ...), mas a
+    lógica de "só entra loja com preço real confirmado" é a mesma pra
+    todas (ver comentário mais abaixo)."""
     lojas_fisicas = [l for l in lojas if l.type == Store.TIPO_FISICA]
 
     produtos = []
-    for dados in PRODUTOS:
+    for dados in produtos_lista:
         nome = f"{dados['brand']} {dados['nome_curto']}"
         lojas_reais = dados.get("lojas_reais", {})
         # Foto REAL (de qualquer loja que tenha uma) quando existe; cai no
@@ -879,7 +1082,7 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
             name=nome,
             brand=dados["brand"],
             model=dados["model"],
-            category=categoria_geladeiras,
+            category=categoria,
             specs=dados["specs"],
             image_url=imagem_real,
             slug=slugify(f"{nome}-{dados['model']}"),
@@ -988,7 +1191,8 @@ def executar_seed() -> None:
 
     categorias = popular_categorias()
     lojas = popular_lojas()
-    produtos = popular_produtos_e_precos(categorias["geladeiras"], lojas)
+    produtos = popular_produtos_e_precos(categorias["geladeiras"], lojas, PRODUTOS_GELADEIRAS)
+    produtos += popular_produtos_e_precos(categorias["micro-ondas"], lojas, PRODUTOS_MICROONDAS)
     gerar_historico_de_precos(produtos)
 
     db.session.commit()

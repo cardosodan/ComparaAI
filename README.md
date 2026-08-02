@@ -1215,6 +1215,77 @@ mesmo dia): **todas as 16 bateram exatamente** com o preço e status de
 estoque já gravados, nenhuma promoção nova encontrada nelas. Reseed final:
 **15 lojas, 39 preços** (era 35).
 
+## 2ª categoria com produto de verdade: Micro-ondas (Fogões/Lava-louças ficam pra próxima)
+
+Usuário pediu: "Mais buscados" mostrando variedade além de geladeira
+(fogão, lava-louças) + começar a popular as outras categorias JÁ, com o
+mesmo cuidado de sempre (preço real, estoque, desconto, desconto no
+PIX). Dado o tamanho do pedido (3 categorias × ~10 produtos × várias
+lojas cada, igual o trabalho de Geladeiras a sessão inteira), comecei
+por **Micro-ondas** — Fogões e Lava-louças ficam pra próxima rodada.
+
+**Mudança estrutural necessária primeiro**: o código era todo hardcoded
+pra uma categoria só.
+- `popular_produtos_e_precos` ganhou um 3º parâmetro (`produtos_lista`)
+  em vez de ler direto a constante `PRODUTOS` — permite popular
+  qualquer categoria com sua própria lista de produtos. `PRODUTOS` virou
+  `PRODUTOS_GELADEIRAS`, e `PRODUTOS_MICROONDAS` é a lista nova.
+- `formatar_especificacoes` (pricing.py) ganhou os campos de micro-ondas
+  (`tipo`, `grill`, `potencia_watts`) ao lado dos de geladeira — mesma
+  função pras duas categorias, cada `if "chave" in specs` só aparece
+  quando a categoria realmente tem aquela chave.
+- **"Mais buscados" da home corrigido**: pegava sempre os primeiros 6
+  produtos por ID — como Geladeiras foi cadastrada primeiro, uma 2ª
+  categoria NUNCA apareceria ali (os IDs dela sempre vêm depois). Agora
+  pega 2 de CADA categoria `active=True`.
+- Categoria "Micro-ondas" virou `active=True` (só ela — Fogões/Lava-
+  louças continuam "em breve" até ganharem produtos de verdade).
+
+**10 produtos, 4 marcas já usadas em Geladeiras + 1 nova**: Electrolux,
+Brastemp, Consul, LG — e **Panasonic no lugar da Samsung**. WebSearch
+confirmou que a Samsung não tem catálogo real de micro-ondas no Brasil
+(resultados só retornavam produtos de Portugal/África) — forçar ela
+aqui repetiria o mesmo erro já corrigido antes (Bemol vendendo LG,
+Amazon com preço inventado). Panasonic é historicamente uma marca forte
+nessa categoria no Brasil, com loja oficial de verdade ("Parceiros
+Panasonic", também VTEX) — nova `Store` adicionada.
+
+**Achado real que quase virou bug**: os 2 modelos LG (MS3043BR/
+MH7093BRA) só tinham `url`+`imagem` da LG (mesma limitação de sempre,
+JS-rendered) — SEM preço real de nenhuma loja, ficariam com **zero
+ofertas**. Como a regra desta sessão é "só preço real", um produto
+assim ficaria com `price_min = None`, quebrando o template (`"%.2f" %
+None`). Achei preço real pra ambos no Carrefour — e reconferindo AO VIVO
+com Playwright (mesmo cuidado de sempre), a MH7093BRA está com
+`OutOfStock` de verdade (JSON-LD estático dizia "InStock", desatualizado
+— mesmo padrão já visto em Geladeiras), enquanto a MS3043BR está
+disponível de verdade, com desconto real no PIX (R$772,16 no cartão,
+R$749,00 no PIX, ~3%).
+
+**Promoções reais encontradas** (achadas com as mesmas técnicas de
+sempre — `listPrice`/`listPriceWithTaxes` do JSON-LD, nunca "% OFF"
+genérico): Brastemp BMJ38AR (de R$1.639 por R$1.027,80, ~37%, a maior
+desconto achada), Brastemp BMO45AR (de R$16.499 por R$13.199,99, ~20%),
+Consul CMS23AE (de R$599 por R$504,90, ~16%) + a variante CMS23AR na
+Fast Shop (de R$849 por R$619, ~27%), Consul CMS46AB (de R$969 por
+R$604,80, ~38%), LG MS3043BR no Carrefour (~3% no PIX). Panasonic
+NN-GT68 (Fast Shop) também tem desconto real (de R$1.239,37 por
+R$1.099), mas está `OutOfStock` — preço registrado sem destacar a
+promoção (mesmo critério de sempre pra item esgotado).
+
+Reseed: **20 produtos** (10 Geladeiras + 10 Micro-ondas), **16 lojas**
+(+ Panasonic), **50 preços**. Testado com curl: home mostra os dois
+categorias em "Mais buscados", busca por "micro-ondas" funciona, página
+de produto renderiza specs (Capacidade/Tipo/Grill) e promoções
+corretamente, painel admin continua funcionando com o catálogo maior.
+
+**Fora do escopo desta rodada** (fica pra próxima, mesmo pedido do
+usuário): Fogões e Lava-louças ainda são só "em breve", sem produto
+nenhum. O filtro "Frost Free" da busca (específico de geladeira)
+também não foi generalizado/escondido pra outras categorias ainda —
+não quebra nada (um micro-ondas simplesmente não tem essa spec, filtro
+não bate), mas é um polimento visual pendente.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo

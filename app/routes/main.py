@@ -3,7 +3,7 @@ resultados de busca com filtros (Passo 5).
 """
 from flask import Blueprint, render_template, request
 
-from app.models import Product
+from app.models import Category, Product
 from app.services.search import buscar_produtos, filtrar_produtos, listar_marcas_disponiveis
 
 main_bp = Blueprint("main", __name__)
@@ -13,8 +13,16 @@ main_bp = Blueprint("main", __name__)
 def index():
     # "Mais buscados": sem métrica de popularidade real ainda (Fase 1 é
     # dado mockado) — mostra uma seleção fixa dos produtos cadastrados,
-    # documentado aqui pra não parecer que é ranking de verdade.
-    mais_buscados = Product.query.order_by(Product.id).limit(6).all()
+    # documentado aqui pra não parecer que é ranking de verdade. Pega
+    # alguns de CADA categoria ativa (não só os 6 primeiros por ID) —
+    # sem isso, assim que uma 2ª categoria ganhasse produtos de verdade,
+    # ela nunca apareceria aqui (os IDs das Geladeiras, cadastradas
+    # primeiro, sempre vêm antes).
+    mais_buscados = []
+    for categoria in Category.query.filter_by(active=True).order_by(Category.name).all():
+        mais_buscados.extend(
+            Product.query.filter_by(category_id=categoria.id).order_by(Product.id).limit(2).all()
+        )
     return render_template("home.html", mais_buscados=mais_buscados)
 
 

@@ -107,16 +107,23 @@ def url_busca_de_apoio(loja, produto) -> str | None:
     return loja.website_url
 
 
-# Fase 1 é só geladeiras — mapeamento de specs fixo pra essa categoria.
-# Categoria nova (fogão, lava-louças...) vai precisar do próprio mapeamento
-# quando ganhar produtos de verdade (specs de fogão não tem "capacidade em
-# litros", por exemplo).
+# Mapeamento de specs por CHAVE (não por categoria) — cada categoria nova
+# (Fogões, Lava-louças...) só precisa acrescentar as chaves que usa de
+# verdade aqui; chaves que uma categoria não tem simplesmente não aparecem
+# (`if "chave" in specs`), então Geladeiras/Micro-ondas convivem na mesma
+# função sem conflito.
 def formatar_especificacoes(specs: dict) -> list[tuple[str, str]]:
     linhas = []
     if "capacidade_litros" in specs:
         linhas.append(("Capacidade", f"{specs['capacidade_litros']} litros"))
+    if "tipo" in specs:
+        linhas.append(("Tipo", specs["tipo"]))
     if "frost_free" in specs:
         linhas.append(("Frost Free", "Sim" if specs["frost_free"] else "Não"))
+    if "grill" in specs:
+        linhas.append(("Grill", "Sim" if specs["grill"] else "Não"))
+    if "potencia_watts" in specs:
+        linhas.append(("Potência", f"{specs['potencia_watts']} W"))
     if "cor" in specs:
         linhas.append(("Cor", specs["cor"]))
     if "voltagem" in specs:
