@@ -21,10 +21,15 @@
       <p class="text-sm font-semibold text-ink mb-2">Marca</p>
       <div class="space-y-1.5">
         {% for marca in marcas_disponiveis %}
-          <label class="flex items-center gap-2 text-sm text-ink-muted">
-            <input type="checkbox" name="marca" value="{{ marca }}"
-                   {% if marca in marcas_selecionadas %}checked{% endif %}
-                   class="rounded border-border bg-elevated text-accent focus:ring-accent focus:ring-offset-0">
+          <label class="group flex items-center gap-2.5 text-sm text-ink-muted hover:text-ink cursor-pointer select-none">
+            <span class="relative inline-flex items-center justify-center w-5 h-5 shrink-0">
+              <input type="checkbox" name="marca" value="{{ marca }}"
+                     {% if marca in marcas_selecionadas %}checked{% endif %}
+                     class="peer appearance-none w-5 h-5 rounded-md border-2 border-border bg-elevated
+                            checked:bg-accent checked:border-accent transition-colors cursor-pointer
+                            focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface">
+              <i data-lucide="check" class="absolute w-3.5 h-3.5 text-accent-ink opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></i>
+            </span>
             {{ marca }}
           </label>
         {% endfor %}
@@ -56,32 +61,38 @@
     <div>
       <p class="text-sm font-semibold text-ink mb-2">Frost Free</p>
       <div class="space-y-1.5">
-        <label class="flex items-center gap-2 text-sm text-ink-muted">
-          <input type="radio" name="frost_free" value="" {% if not frost_free_param %}checked{% endif %} class="border-border text-accent focus:ring-accent">
-          Todos
-        </label>
-        <label class="flex items-center gap-2 text-sm text-ink-muted">
-          <input type="radio" name="frost_free" value="sim" {% if frost_free_param == "sim" %}checked{% endif %} class="border-border text-accent focus:ring-accent">
-          Sim
-        </label>
-        <label class="flex items-center gap-2 text-sm text-ink-muted">
-          <input type="radio" name="frost_free" value="nao" {% if frost_free_param == "nao" %}checked{% endif %} class="border-border text-accent focus:ring-accent">
-          Não
-        </label>
+        {% for valor, rotulo in [("", "Todos"), ("sim", "Sim"), ("nao", "Não")] %}
+          <label class="group flex items-center gap-2.5 text-sm text-ink-muted hover:text-ink cursor-pointer select-none">
+            <span class="relative inline-flex items-center justify-center w-5 h-5 shrink-0">
+              <input type="radio" name="frost_free" value="{{ valor }}"
+                     {% if frost_free_param == valor or (not frost_free_param and not valor) %}checked{% endif %}
+                     class="peer appearance-none w-5 h-5 rounded-full border-2 border-border bg-elevated
+                            checked:border-accent transition-colors cursor-pointer
+                            focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface">
+              <span class="absolute w-2.5 h-2.5 rounded-full bg-accent opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></span>
+            </span>
+            {{ rotulo }}
+          </label>
+        {% endfor %}
       </div>
     </div>
 
     <div>
       <p class="text-sm font-semibold text-ink mb-2">Tipo de loja</p>
       <div class="space-y-1.5">
-        <label class="flex items-center gap-2 text-sm text-ink-muted">
-          <input type="checkbox" name="tipo_loja" value="online" {% if "online" in tipos_loja_selecionados %}checked{% endif %} class="rounded border-border bg-elevated text-accent focus:ring-accent focus:ring-offset-0">
-          Online
-        </label>
-        <label class="flex items-center gap-2 text-sm text-ink-muted">
-          <input type="checkbox" name="tipo_loja" value="fisica" {% if "fisica" in tipos_loja_selecionados %}checked{% endif %} class="rounded border-border bg-elevated text-accent focus:ring-accent focus:ring-offset-0">
-          Física
-        </label>
+        {% for valor, rotulo in [("online", "Online"), ("fisica", "Física")] %}
+          <label class="group flex items-center gap-2.5 text-sm text-ink-muted hover:text-ink cursor-pointer select-none">
+            <span class="relative inline-flex items-center justify-center w-5 h-5 shrink-0">
+              <input type="checkbox" name="tipo_loja" value="{{ valor }}"
+                     {% if valor in tipos_loja_selecionados %}checked{% endif %}
+                     class="peer appearance-none w-5 h-5 rounded-md border-2 border-border bg-elevated
+                            checked:bg-accent checked:border-accent transition-colors cursor-pointer
+                            focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface">
+              <i data-lucide="check" class="absolute w-3.5 h-3.5 text-accent-ink opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></i>
+            </span>
+            {{ rotulo }}
+          </label>
+        {% endfor %}
       </div>
     </div>
 

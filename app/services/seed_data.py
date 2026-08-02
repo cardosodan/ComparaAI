@@ -481,7 +481,14 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
         if loja_da_marca:
             selecionadas.append(loja_da_marca)
 
-        loja_fisica_escolhida = loja_bemol if ("Bemol" in lojas_reais and loja_bemol) else random.choice(lojas_fisicas)
+        # LG nunca é sorteada pra Bemol (~80 sitemaps verificados, ela
+        # confirmadamente não vende essa marca — mostrar o link da Bemol
+        # ali caía na homepage dela por padrão, dando a entender que "pode
+        # estar lá" quando sabemos que não está). Eletro Norte (loja
+        # física fictícia, sempre "Sem site") é a única opção física pra
+        # produto LG sem dado real da Bemol.
+        candidatas_fisicas = lojas_fisicas if dados["brand"] != "LG" else [l for l in lojas_fisicas if l.name != "Bemol"]
+        loja_fisica_escolhida = loja_bemol if ("Bemol" in lojas_reais and loja_bemol) else random.choice(candidatas_fisicas)
         selecionadas.append(loja_fisica_escolhida)
 
         for loja in selecionadas:
