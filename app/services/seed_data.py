@@ -1,9 +1,15 @@
 """Dados mockados do ComparaAI (Fase 1: só geladeiras) — usado por `seed.py`.
 
-Preços e histórico são gerados por código (não digitados um a um) a partir
-de um preço-base por produto + uma variação por loja, com seed fixa
-(reprodutível — mesmo resultado toda vez que `seed.py` roda, útil pra
-comparar antes/depois de uma mudança).
+Todo `Price` gravado vem de `lojas_reais` (dado REAL, achado via JSON-LD/
+Playwright, ver comentários pontuais em cada produto) — pedido explícito
+do usuário: "eu só quero LOJAS REAIS SEM INVENTAR NADA E COM PREÇOS
+REAIS". Uma loja só aparece pra um produto quando JÁ existe um preço real
+confirmado pra aquele par produto+loja (`popular_produtos_e_precos`
+decide isso). Não existe mais nenhum preço/estoque simulado por
+aleatoriedade — só o HISTÓRICO de 30 dias (`gerar_historico_de_precos`)
+continua sendo uma tendência sintética (documentado ali, com seed fixa
+pra reprodutibilidade), já que não temos preço histórico real capturado
+dia a dia.
 """
 import random
 from datetime import datetime, timedelta
@@ -137,28 +143,26 @@ LOJAS = [
         "logo_url": "/static/img/lojas/bemol.svg",
         "trust_score": 4.5,
     },
-    {
-        "name": "Eletro Norte",
-        "type": Store.TIPO_FISICA,
-        "city": "Manaus",
-        "website_url": None,
-        "logo_url": "/static/img/lojas/eletro-norte.svg",
-        "trust_score": 3.9,
-    },
+    # "Eletro Norte" foi REMOVIDA de vez (era uma loja física FICTÍCIA —
+    # nunca existiu de verdade, sem site, sem CNPJ, preço/estoque sempre
+    # simulado). Usuário pediu explicitamente "SÓ LOJAS REAIS, SEM
+    # INVENTAR NADA, COM PREÇOS REAIS" — Bemol continua sendo a única
+    # opção de loja física (é real, tem preço/estoque via JSON-LD real).
 ]
 
-# Preço-base (R$) + specs de cada geladeira. Marcas do brief: Electrolux,
-# Brastemp, Consul, Samsung, LG — variando capacidade/frost-free/cor pra
-# dar variedade real de filtro (não só o mesmo produto 10 vezes).
+# Specs de cada geladeira. Marcas do brief: Electrolux, Brastemp, Consul,
+# Samsung, LG — variando capacidade/frost-free/cor pra dar variedade real
+# de filtro (não só o mesmo produto 10 vezes).
 #
 # `lojas_reais` (quando presente): dict {nome_da_loja: {...}} com dado REAL
 # achado no catálogo de verdade daquela loja (sitemap público + extração
 # via JSON-LD, mesma técnica de sempre, ver app/services/atualizacao_precos.py)
 # — pedido do usuário ("quero ser redirecionado pro site" + "todos com
-# foto" + depois "entre no produto específico, não só no site"). Nunca é o
-# MESMO produto exato do nosso catálogo mockado, sempre o mais parecido em
-# capacidade/linha que a loja de verdade vende — aproximação deliberada,
-# documentada, não correspondência 1:1 garantida.
+# foto" + depois "entre no produto específico, não só no site" + depois
+# "eu só quero LOJAS REAIS SEM INVENTAR NADA E COM PREÇOS REAIS"). Nunca é
+# o MESMO produto exato do nosso catálogo mockado, sempre o mais parecido
+# em capacidade/linha que a loja de verdade vende — aproximação
+# deliberada, documentada, não correspondência 1:1 garantida.
 #
 # As chaves possíveis são: "Bemol", o NOME DA PRÓPRIA MARCA (Electrolux/
 # Brastemp/Consul/Samsung/LG — cada produto só usa a chave da sua própria
@@ -167,36 +171,34 @@ LOJAS = [
 # catálogo inteiro (bloqueiam toda requisição automatizada, mesmo com
 # Playwright sem disfarce nenhum — ver atualizacao_precos.py e README).
 #
-# Cada entrada tem `url` (obrigatório) e, quando disponível, `imagem`/
-# `preco`/`em_estoque`. Bemol/Brastemp/Consul/Electrolux (mesma plataforma
-# VTEX) e Carrefour/Americanas/Fast Shop/Kabum/Angeloni (idem, quando o
-# catálogo da loja não está com preço zerado — ver comentários pontuais
-# abaixo) expõem os campos via JSON-LD estático. Samsung e LG **não
-# publicam preço/estoque em lugar nenhum estático** — a busca por produto
-# nessas duas confirmou que são sites carregados por JavaScript (o preço só
-# aparece depois de uma chamada de API feita pelo navegador, invisível pra
-# qualquer requisição HTTP simples) — resolvido com Playwright pra Samsung
-# (não bloqueia automação), mas não pra LG (bloqueia com 403 via Akamai,
-# mesma categoria de proteção anti-bot que já bloqueava Magazine Luiza/
-# Casas Bahia). AMAZON também não publica JSON-LD nenhum (nem preço nem
-# estoque em atributo estático) — mas ao contrário de Samsung/LG, Amazon
-# não bloqueia Playwright, então cada uma das 10 páginas de produto real
-# foi verificada AO VIVO (não só o status HTTP, que sempre retorna 200
-# mesmo com o item indisponível): a maioria mostrou "Não disponível. Não
-# temos previsão de quando este produto estará disponível novamente." —
-# nesses casos `em_estoque: False` é gravado EXPLICITAMENTE (não fica de
-# fora nem cai no sorteio aleatório, que erraria mostrando "em estoque" a
-# maior parte das vezes) — só 2 produtos (Electrolux IF55, LG GC-B) têm
-# preço real confirmado em estoque na Amazon no momento desta verificação.
-# O que não tem preço/estoque real continua SIMULADO
-# (`popular_produtos_e_precos` decide isso campo a campo, não é tudo ou
-# nada). Ainda assim resolve o pedido central do usuário — entrar na
-# página REAL e específica daquele produto — mesmo sem conseguir
-# sincronizar preço ao vivo com essas marcas/lojas.
+# **`preco` e `em_estoque` são OBRIGATÓRIOS pra uma loja aparecer** nesse
+# produto — `popular_produtos_e_precos` só cria uma oferta quando os dois
+# estão presentes (nunca simulado por aleatoriedade, nem pra Amazon, que
+# antes era exceção). `imagem` é sempre opcional. `url` sozinho, sem
+# `preco`, não gera oferta nenhuma — é só um resquício documentado do
+# processo de pesquisa (ver comentários pontuais: várias lojas têm
+# catálogo com "price": 0/OutOfStock — confirmado ao vivo que é falta de
+# estoque real, não bug — então a chave existe só pra registrar a
+# investigação, mas não produz `Price` nenhum).
+#
+# Bemol/Brastemp/Consul/Electrolux/Carrefour/Americanas/Fast Shop/Kabum/
+# Angeloni (todos VTEX) expõem preço/estoque via JSON-LD estático. Samsung
+# usa `shop.samsung.com` (JSON-LD estático também, achado via WebSearch —
+# não confundir com `www.samsung.com`, o site institucional/marketing
+# carregado por JS). **LG nunca tem `preco` real** — o site é carregado
+# por JavaScript e bloqueia Playwright com 403 via Akamai (mesma categoria
+# de proteção anti-bot que já bloqueava Magazine Luiza/Casas Bahia) — por
+# isso a loja "LG" NUNCA aparece como oferta em nenhum produto LG (só
+# `url`/`imagem`, sem preço pra mostrar). Amazon não publica JSON-LD
+# nenhum — cada página real foi verificada AO VIVO com Playwright (não só
+# o status HTTP, que sempre retorna 200 mesmo com o item indisponível);
+# a maioria mostrou "Não disponível. Não temos previsão de quando este
+# produto estará disponível novamente" — sem preço nenhum pra registrar,
+# então a Amazon só aparece nos poucos produtos onde teve preço real
+# confirmado em estoque no momento da verificação.
 PRODUTOS = [
     {
         "brand": "Electrolux", "model": "DF44", "nome_curto": "Frost Free 382L",
-        "preco_base": 2799.00,
         "specs": {"capacidade_litros": 382, "frost_free": True, "cor": "Branca",
                    "voltagem": "220V", "dimensoes_cm": "179 x 68 x 68", "consumo_kwh_mes": 38.6},
         "lojas_reais": {
@@ -271,7 +273,6 @@ PRODUTOS = [
     },
     {
         "brand": "Electrolux", "model": "IF55", "nome_curto": "Inverter Duplex 490L",
-        "preco_base": 4599.00,
         "specs": {"capacidade_litros": 490, "frost_free": True, "cor": "Inox",
                    "voltagem": "Bivolt", "dimensoes_cm": "186 x 70 x 73", "consumo_kwh_mes": 42.1},
         "lojas_reais": {
@@ -322,7 +323,6 @@ PRODUTOS = [
     },
     {
         "brand": "Brastemp", "model": "BRM44", "nome_curto": "Frost Free 375L",
-        "preco_base": 2649.00,
         "specs": {"capacidade_litros": 375, "frost_free": True, "cor": "Branca",
                    "voltagem": "127V", "dimensoes_cm": "177 x 67 x 67", "consumo_kwh_mes": 37.9},
         "lojas_reais": {
@@ -377,7 +377,6 @@ PRODUTOS = [
     },
     {
         "brand": "Brastemp", "model": "BRE80", "nome_curto": "Inverse Frost Free 573L",
-        "preco_base": 5899.00,
         "specs": {"capacidade_litros": 573, "frost_free": True, "cor": "Inox",
                    "voltagem": "220V", "dimensoes_cm": "191 x 91 x 71", "consumo_kwh_mes": 48.3},
         "lojas_reais": {
@@ -427,7 +426,6 @@ PRODUTOS = [
     },
     {
         "brand": "Consul", "model": "CRB39", "nome_curto": "Frost Free 340L",
-        "preco_base": 2299.00,
         "specs": {"capacidade_litros": 340, "frost_free": True, "cor": "Branca",
                    "voltagem": "127V", "dimensoes_cm": "170 x 66 x 66", "consumo_kwh_mes": 35.2},
         "lojas_reais": {
@@ -502,7 +500,6 @@ PRODUTOS = [
     },
     {
         "brand": "Consul", "model": "CRM50", "nome_curto": "Duplex Frost Free 450L",
-        "preco_base": 3399.00,
         "specs": {"capacidade_litros": 450, "frost_free": True, "cor": "Branca",
                    "voltagem": "220V", "dimensoes_cm": "183 x 70 x 69", "consumo_kwh_mes": 40.0},
         "lojas_reais": {
@@ -545,7 +542,6 @@ PRODUTOS = [
     },
     {
         "brand": "Samsung", "model": "RT46", "nome_curto": "Frost Free Inverter 460L",
-        "preco_base": 4299.00,
         "specs": {"capacidade_litros": 460, "frost_free": True, "cor": "Inox",
                    "voltagem": "220V", "dimensoes_cm": "182 x 70 x 74", "consumo_kwh_mes": 39.5},
         "lojas_reais": {
@@ -590,7 +586,6 @@ PRODUTOS = [
     },
     {
         "brand": "Samsung", "model": "RF50", "nome_curto": "French Door 501L",
-        "preco_base": 7499.00,
         "specs": {"capacidade_litros": 501, "frost_free": True, "cor": "Inox",
                    "voltagem": "Bivolt", "dimensoes_cm": "179 x 91 x 74", "consumo_kwh_mes": 45.7},
         "lojas_reais": {
@@ -625,7 +620,6 @@ PRODUTOS = [
     },
     {
         "brand": "LG", "model": "GC-B", "nome_curto": "Frost Free Inverter 395L",
-        "preco_base": 3199.00,
         "specs": {"capacidade_litros": 395, "frost_free": True, "cor": "Branca",
                    "voltagem": "220V", "dimensoes_cm": "180 x 68 x 70", "consumo_kwh_mes": 36.8},
         # Sem entrada "Bemol" de propósito — LG não aparece no catálogo dela
@@ -685,7 +679,6 @@ PRODUTOS = [
     },
     {
         "brand": "LG", "model": "GC-X267", "nome_curto": "Side by Side InstaView 628L",
-        "preco_base": 19999.00,
         "specs": {"capacidade_litros": 628, "frost_free": True, "cor": "Inox",
                    "voltagem": "Bivolt", "dimensoes_cm": "179 x 91.3 x 73.5", "consumo_kwh_mes": 54.0},
         # SUBSTITUIU o antigo "GC-L" (GC-L247SLUV/GS65SDN1, 601L) —
@@ -751,13 +744,6 @@ PRODUTOS = [
 DIAS_DE_HISTORICO = 30
 
 
-def _preco_com_variacao(base: float, variacao_pct: float) -> Decimal:
-    valor = base * (1 + variacao_pct)
-    # preço "redondo" tipo e-commerce de verdade (termina em ,90 ou ,99)
-    final = round(valor / 10) * 10 - 0.10
-    return Decimal(str(round(final, 2)))
-
-
 def popular_categorias() -> dict[str, Category]:
     mapa = {}
     for dados in CATEGORIAS:
@@ -802,84 +788,42 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
         db.session.add(produto)
         produtos.append(produto)
 
-        # Lojas online "universais" (Amazon, Carrefour, Americanas, Fast
-        # Shop, Kabum, Angeloni) — comparar o máximo de ofertas possível é
-        # o pedido do usuário ("quero que todos os produtos estejam com
-        # todos os links de todas as marcas funcionando" + depois "eu
-        # queria ter mais opções de lugares para comprar" + "eu pedi
-        # OPÇÕES, não uma opção a mais" + "na amazon ele só vai pra página
-        # geral, não pra página específica do produto"), MAS nenhuma delas
-        # tem dado real pra TODOS os produtos (WebSearch não acha tudo, e
-        # vários links indexados já saíram do ar) — incluir uma delas em
-        # produto SEM entrada real repetiria o mesmo bug corrigido 2x nesta
-        # sessão (Carrefour no Electrolux DF44, Bemol no LG): sem
-        # `Price.url`, a oferta cairia no fallback de HOMEPAGE (ou, no caso
-        # da Amazon antes desta rodada, na busca genérica `/s?k=`), que
-        # parece um link quebrado/sem sentido pro usuário. Por isso Amazon
-        # é a ÚNICA exceção que ainda entra sempre (`nome == "Amazon"`
-        # abaixo) — mesmo pros produtos sem `lojas_reais["Amazon"]` (não há
-        # nenhum caso hoje, os 10 produtos já têm entrada real de Amazon,
-        # mas a exceção continua como rede de segurança pra um produto
-        # futuro sem cobertura) — porque a busca `/s?k=` da Amazon sempre
-        # funciona como fallback aceitável, diferente de uma homepage
-        # genérica de qualquer outra loja. Carrefour/Americanas/Fast Shop/
-        # Kabum/Angeloni só entram no produto onde JÁ existe uma URL real
-        # confirmada em `lojas_reais` — garante estruturalmente que NENHUMA
-        # oferta delas caia em homepage, mesmo pra loja nova/produto futuro
-        # que eu esqueça de pesquisar por completo.
+        # SÓ entram lojas com PREÇO REAL confirmado pra esse produto
+        # específico (pedido explícito do usuário: "eu só quero LOJAS
+        # REAIS SEM INVENTAR NADA E COM PREÇOS REAIS") — nada de preço/
+        # estoque simulado por aleatoriedade, nem pra Amazon (que antes
+        # era a única exceção sempre incluída, mesmo sem dado real — essa
+        # exceção foi removida). Uma loja (universal, da marca, ou física)
+        # só vira uma oferta visível quando `lojas_reais[nome]` tem a
+        # chave `"preco"` — sem isso, ela simplesmente não aparece nesse
+        # produto, em vez de aparecer com um número inventado.
         lojas_online = [l for l in lojas if l.type == Store.TIPO_ONLINE]
-        lojas_fisicas = [l for l in lojas if l.type == Store.TIPO_FISICA]
 
         selecionadas = []
         for nome in ("Amazon", "Carrefour", "Americanas", "Fast Shop", "Kabum", "Angeloni"):
             loja_universal = next((l for l in lojas_online if l.name == nome), None)
-            if loja_universal and (nome == "Amazon" or nome in lojas_reais):
+            if loja_universal and "preco" in lojas_reais.get(nome, {}):
                 selecionadas.append(loja_universal)
 
         loja_da_marca = next((l for l in lojas_online if l.name == dados["brand"]), None)
-        if loja_da_marca:
+        if loja_da_marca and "preco" in lojas_reais.get(dados["brand"], {}):
             selecionadas.append(loja_da_marca)
 
-        # LG nunca é sorteada pra Bemol (~80 sitemaps verificados, ela
-        # confirmadamente não vende essa marca — mostrar o link da Bemol
-        # ali caía na homepage dela por padrão, dando a entender que "pode
-        # estar lá" quando sabemos que não está). Eletro Norte (loja
-        # física fictícia, sempre "Sem site") é a única opção física pra
-        # produto LG sem dado real da Bemol.
-        candidatas_fisicas = lojas_fisicas if dados["brand"] != "LG" else [l for l in lojas_fisicas if l.name != "Bemol"]
-        loja_fisica_escolhida = loja_bemol if ("Bemol" in lojas_reais and loja_bemol) else random.choice(candidatas_fisicas)
-        selecionadas.append(loja_fisica_escolhida)
+        # Bemol é a única loja física do catálogo (real, com preço/estoque
+        # via JSON-LD) — só entra quando tem preço real confirmado pra
+        # esse produto (nunca é a marca LG, que ela comprovadamente não
+        # vende). Não existe mais nenhuma loja física "de preenchimento".
+        if loja_bemol and "preco" in lojas_reais.get("Bemol", {}):
+            selecionadas.append(loja_bemol)
 
         for loja in selecionadas:
-            dado_real = lojas_reais.get(loja.name)
-            url = dado_real["url"] if dado_real else None
-
-            # Preço e estoque são decididos CAMPO A CAMPO, não tudo-ou-nada
-            # por loja: algumas lojas reais têm os dois confirmados
-            # (Bemol/Brastemp/Consul/Electrolux, via JSON-LD), outras só
-            # `url` sem nenhum dos dois (Samsung/LG — preço/estoque
-            # carregados por JavaScript, invisíveis pra scraping estático;
-            # Carrefour em alguns produtos — JSON-LD existe, mas com
-            # "price": 0, dado de catálogo claramente inválido). O que não
-            # tem dado real cai no mesmo simulado de qualquer loja sem
-            # informação nenhuma.
-            usou_dado_real = False
-            if dado_real and "preco" in dado_real:
-                preco = Decimal(str(dado_real["preco"]))
-                usou_dado_real = True
-            else:
-                variacao = random.uniform(-0.08, 0.12)  # loja mais barata até mais cara que a base
-                preco = _preco_com_variacao(dados["preco_base"], variacao)
-
-            if dado_real and "em_estoque" in dado_real:
-                em_estoque = dado_real["em_estoque"]
-                usou_dado_real = True
-            else:
-                em_estoque = random.random() > 0.08  # ~92% em estoque, resto "esgotado" (realismo)
+            dado_real = lojas_reais[loja.name]
+            preco = Decimal(str(dado_real["preco"]))
+            em_estoque = dado_real["em_estoque"]
 
             # Promoção temporária REAL (ver comentários pontuais em
-            # `lojas_reais` — achadas de duas formas: comparando o estado
-            # embutido `priceRange.listPrice` vs. `priceRange.sellingPrice`/
+            # `lojas_reais` — achadas comparando o estado embutido
+            # `priceRange.listPrice` vs. `priceRange.sellingPrice`/
             # `listPrice`/`listPriceWithTaxes` do JSON-LD de cada página
             # VTEX — nunca um "% OFF" genérico de banner de pagamento — ou,
             # no caso do Carrefour, um desconto de verdade só que
@@ -891,12 +835,10 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
             preco_original = None
             promo_valid_until = None
             promo_pix = False
-            if dado_real and "preco_original" in dado_real:
+            if "preco_original" in dado_real:
                 preco_original = Decimal(str(dado_real["preco_original"]))
                 promo_valid_until = datetime.utcnow() + timedelta(days=dado_real.get("promo_dias", 5))
                 promo_pix = dado_real.get("promo_pix", False)
-
-            atualizado_ha_horas = random.randint(1, 6) if usou_dado_real else random.randint(1, 30)
 
             db.session.add(Price(
                 product=produto,
@@ -905,9 +847,9 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
                 original_price=preco_original,
                 promo_pix=promo_pix,
                 promo_valid_until=promo_valid_until,
-                url=url,
+                url=dado_real["url"],
                 in_stock=em_estoque,
-                last_updated=datetime.utcnow() - timedelta(hours=atualizado_ha_horas),
+                last_updated=datetime.utcnow() - timedelta(hours=random.randint(1, 6)),
             ))
     db.session.flush()
     return produtos

@@ -1067,6 +1067,73 @@ pedido). Reseed (13 lojas, 57 preços — 2 a mais que antes, já que esse
 produto agora tem mais lojas com dado real) + curl confirmaram hero e
 badge "-10% no PIX" renderizando certo.
 
+## Mudança estrutural: zero preço/loja simulado — "SÓ LOJAS REAIS, SEM INVENTAR NADA, COM PREÇOS REAIS"
+
+Usuário perguntou como a "Eletro Norte" (loja física do catálogo) tinha
+preço se ela não tem site — resposta: ela sempre foi **fictícia**,
+inventada desde o início do projeto só pra ter uma 2ª opção de loja
+física em Manaus além da Bemol, com preço/estoque 100% simulado por
+aleatoriedade. Reação do usuário foi direta: "eu só quero LOJAS REAIS SEM
+INVENTAR NADA E COM PREÇOS REAIS" — não só a Eletro Norte, mas qualquer
+preço/estoque simulado em qualquer loja.
+
+Isso expôs que o problema era maior que só a Eletro Norte: até aqui,
+QUALQUER loja sem dado real confirmado (`"preco"` em `lojas_reais`) ainda
+recebia um preço/estoque **sorteado aleatoriamente** a partir de
+`preco_base` — inclusive Amazon (nos 8 produtos "indisponível", o estoque
+era real mas o preço mostrado era inventado) e a própria LG (site
+institucional, nunca teve preço real, sempre sorteado). Ou seja, mesmo
+depois de tantas rodadas garantindo "nunca cair em homepage" e "nunca
+mostrar estoque errado", ainda sobrava a última camada de invenção: um
+NÚMERO de preço que nenhuma loja de verdade estava mostrando.
+
+**Reescrita completa de `popular_produtos_e_precos`** — removida por
+completo:
+- `_preco_com_variacao()` (gerava preço sorteado a partir de
+  `preco_base`) — função deletada, `preco_base` removido dos 10
+  produtos (campo morto sem a função).
+- O sorteio de estoque (`random.random() > 0.08`).
+- A exceção especial que sempre incluía a Amazon mesmo sem preço real.
+- Toda a lógica de "loja física de preenchimento" (`random.choice` entre
+  Bemol/Eletro Norte).
+
+**Nova regra, única e sem exceção**: uma loja só vira uma oferta visível
+pra um produto quando `lojas_reais[nome]` tem as chaves `"preco"` E
+`"em_estoque"` — confirmado que TODA entrada com `"preco"` no catálogo já
+tinha `"em_estoque"` também (nunca uma sem a outra), então não precisou
+de fallback nenhum pra esse par. Sem preço real, a loja simplesmente não
+aparece nesse produto — nunca mais um número inventado, nem um "Esgotado"
+com preço fictício do lado.
+
+**Store "Eletro Norte" removida por completo** (não só desativada) — era
+100% fictícia, sem site, sem CNPJ, nunca teve dado real e nunca poderia
+ter. Bemol continua sendo a única loja física do catálogo (é real, com
+preço/estoque via JSON-LD confirmado).
+
+**Consequência visível**: cada produto agora mostra só as ofertas
+genuinamente confirmadas — de 4-7 (era sempre um número fixo de
+"selecionadas" antes, preenchido com simulação quando faltava dado real).
+Todos os 10 produtos continuam com pelo menos 2 ofertas reais (conferido
+antes de aplicar). LG nunca mais aparece como "loja" pra produtos LG (o
+site dela nunca teve preço real, só existe como badge de marca/spec) —
+antes ela aparecia sempre com preço sorteado. Amazon só aparece nos 2
+produtos onde realmente tem preço confirmado em estoque (Electrolux IF55,
+LG GC-B/GC-X267) — não mais nos outros 8 com "Esgotado" + preço
+inventado.
+
+Reseed: **12 lojas** (13 → 12, Eletro Norte fora), **35 preços** (era 57
+— quase todos os que sobraram vinham de simulação). Testado com curl em
+vários produtos, inclusive o de menor cobertura (Consul CRM50, só 2
+ofertas: Bemol + Consul) — sem nenhuma referência a loja fictícia ou
+fallback "Sem site" sobrando.
+
+**Fora do escopo desta mudança** (mantido como estava, deliberadamente):
+o histórico de preço de 30 dias (`gerar_historico_de_precos`) continua
+sendo uma TENDÊNCIA sintética em torno do preço real atual — não temos
+preço histórico capturado dia a dia de verdade, e isso já era
+documentado como simulação (não uma oferta atual fingindo ser real). Se
+o usuário quiser que isso também mude, é um pedido à parte.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
