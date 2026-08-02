@@ -41,6 +41,9 @@ def detalhe(slug):
             "preco_original": preco.original_price if preco.promocao_ativa else None,
             "percentual_desconto": preco.percentual_desconto,
             "promocao_ativa": preco.promocao_ativa,
+            # Desconto condicional ao PIX (ex: Carrefour) — só muda o texto
+            # do selo ("-X% no PIX"), não a lógica de quando mostrar.
+            "promo_pix": preco.promo_pix,
             "url": preco.url,
             # Fallback só quando não há link direto confirmado (ver
             # url_busca_de_apoio) — mantém a tabela sem nenhum botão morto.

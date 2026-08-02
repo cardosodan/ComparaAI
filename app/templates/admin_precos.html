@@ -77,6 +77,7 @@
                 <th class="px-4 py-2.5 font-medium">Preço (R$)</th>
                 <th class="px-4 py-2.5 font-medium">Preço original (promoção)</th>
                 <th class="px-4 py-2.5 font-medium">Dias de validade</th>
+                <th class="px-4 py-2.5 font-medium">Só no PIX</th>
                 <th class="px-4 py-2.5 font-medium">Em estoque</th>
                 <th class="px-4 py-2.5 font-medium"></th>
               </tr>
@@ -91,7 +92,7 @@
                     {% endif %}
                     {% if preco.promocao_ativa %}
                       <span class="block text-[10px] font-bold uppercase text-red-500 mt-0.5">
-                        -{{ preco.percentual_desconto }}% até {{ preco.promo_valid_until.strftime('%d/%m') }}
+                        -{{ preco.percentual_desconto }}%{{ " no PIX" if preco.promo_pix else "" }} até {{ preco.promo_valid_until.strftime('%d/%m') }}
                       </span>
                     {% endif %}
                   </td>
@@ -118,6 +119,13 @@
                       type="number" name="promo_dias" min="1" placeholder="5"
                       class="w-16 px-2 py-1.5 rounded-lg bg-elevated border border-border text-ink placeholder:text-ink-faint
                              focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                  </td>
+                  <td class="px-4 py-2.5">
+                    <input
+                      form="form-preco-{{ preco.id }}"
+                      type="checkbox" name="promo_pix" {% if preco.promo_pix %}checked{% endif %}
+                      class="w-5 h-5 rounded accent-red-600 cursor-pointer"
                     >
                   </td>
                   <td class="px-4 py-2.5">

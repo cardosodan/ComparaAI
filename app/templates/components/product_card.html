@@ -39,7 +39,7 @@
         <p class="font-display text-xl font-bold text-red-500 flex items-center gap-1.5">
           R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}
           <span class="text-[10px] font-bold uppercase bg-red-600 text-white px-1.5 py-0.5 rounded-full whitespace-nowrap">
-            -{{ produto.melhor_oferta.percentual_desconto }}%
+            -{{ produto.melhor_oferta.percentual_desconto }}%{{ " no PIX" if produto.melhor_oferta.promo_pix else "" }}
           </span>
         </p>
       {% else %}

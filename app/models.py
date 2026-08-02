@@ -140,6 +140,13 @@ class Price(db.Model):
     # alguém atualizar os campos na mão ou um scrape real sobrescrever).
     original_price = db.Column(db.Numeric(10, 2))
     promo_valid_until = db.Column(db.DateTime)
+    # Desconto condicional à forma de pagamento (achado real: Carrefour
+    # mostra um preço "de cartão" e um preço menor "à vista no PIX" — não é
+    # a mesma coisa que uma promoção de tabela, já que quem paga no cartão/
+    # boleto continua pagando o preço original). Só muda o TEXTO do selo no
+    # template ("-X% no PIX" em vez de só "-X%") — a lógica de
+    # `promocao_ativa`/`preco_atual` é idêntica pros dois casos.
+    promo_pix = db.Column(db.Boolean, default=False, nullable=False)
     url = db.Column(db.String(400))
     in_stock = db.Column(db.Boolean, default=True, nullable=False)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

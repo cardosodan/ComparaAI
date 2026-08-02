@@ -108,9 +108,14 @@ def editar_preco(price_id):
         except ValueError:
             dias = 5
         preco.promo_valid_until = datetime.utcnow() + timedelta(days=max(dias, 1))
+        # Só faz sentido marcar "no PIX" junto de uma promoção de verdade —
+        # sem preço original, o checkbox é ignorado (não sobra um
+        # "promo_pix=True" órfão, sem desconto nenhum pra qualificar).
+        preco.promo_pix = "promo_pix" in request.form
     else:
         preco.original_price = None
         preco.promo_valid_until = None
+        preco.promo_pix = False
 
     preco.in_stock = "in_stock" in request.form
     preco.last_updated = datetime.utcnow()

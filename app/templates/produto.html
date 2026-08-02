@@ -38,7 +38,7 @@
         <p class="font-display text-4xl font-bold text-red-500 flex items-center flex-wrap gap-2">
           R$ {{ "%.2f"|format(produto.price_min)|replace(".", ",") }}
           <span class="text-xs font-bold uppercase bg-red-600 text-white px-2 py-1 rounded-full align-middle whitespace-nowrap">
-            -{{ produto.melhor_oferta.percentual_desconto }}%
+            -{{ produto.melhor_oferta.percentual_desconto }}%{{ " no PIX" if produto.melhor_oferta.promo_pix else "" }}
           </span>
         </p>
       {% else %}
@@ -107,7 +107,7 @@
                     <p class="font-display font-bold text-lg text-red-500 flex items-center gap-1.5">
                       R$ {{ "%.2f"|format(oferta.preco)|replace(".", ",") }}
                       <span class="text-[10px] font-bold uppercase bg-red-600 text-white px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                        -{{ oferta.percentual_desconto }}%
+                        -{{ oferta.percentual_desconto }}%{{ " no PIX" if oferta.promo_pix else "" }}
                       </span>
                     </p>
                   {% else %}

@@ -323,10 +323,13 @@ PRODUTOS = [
             # Mesmo modelo BRM44 de verdade, achado no sitemap oficial da Brastemp.
             # PROMOÇÃO REAL confirmada (mesma técnica das Electrolux acima):
             # `listPrice=3329` vs. `sellingPrice=3089` — ~7% de desconto
-            # ativo agora.
+            # ativo agora. `em_estoque` reconferido numa auditoria posterior
+            # (usuário pediu pra checar de novo) — o JSON-LD atual mostra
+            # `InStock` (voltou a vender, não é mais o `False` de quando
+            # verifiquei da primeira vez).
             "Brastemp": {
                 "url": "https://www.brastemp.com.br/geladeira-brastemp-frost-free-375-litros-brm44hb/p",
-                "preco": 3089.00, "em_estoque": False,
+                "preco": 3089.00, "em_estoque": True,
                 "preco_original": 3329.00, "promo_dias": 8,
                 "imagem": "https://brastemp.vtexassets.com/arquivos/ids/285442/01_Brastemp_Geladeira_BRM44HB_Imagem_Frontal_Fechada.jpg?v=639120439093400000",
             },
@@ -343,9 +346,14 @@ PRODUTOS = [
                 "preco": 2749.00, "em_estoque": True,
             },
             # Mesmo modelo BRM44HB na Fast Shop — JSON-LD real, em estoque.
+            # PROMOÇÃO REAL confirmada (usuário reportou "tem umas promoção
+            # no fast shop que você não colocou" — auditoria confirmou):
+            # o próprio JSON-LD de Offer traz `listPriceWithTaxes=3399` ao
+            # lado de `price=3001.05` — ~12% de desconto ativo agora.
             "Fast Shop": {
                 "url": "https://site.fastshop.com.br/geladeira-brastemp-frost-free-duplex-375-litros-cor-branca---brm44hb-47612/p",
                 "preco": 3001.05, "em_estoque": True,
+                "preco_original": 3399.00, "promo_dias": 7,
                 "imagem": "https://fastshopbr.vtexassets.com/arquivos/ids/3224680/17644568029130.jpg?v=639018782689000000",
             },
             # Mesmo modelo BRM44HB na Amazon — página real confirmada,
@@ -414,15 +422,29 @@ PRODUTOS = [
                 "imagem": "https://bemol.vtexassets.com/arquivos/ids/409316/120334-7.jpg?v=639096891458630000",
             },
             # Mesmo modelo CRB39 de verdade, achado no sitemap oficial da Consul.
+            # PROMOÇÃO REAL confirmada (mesma técnica das Electrolux/Brastemp
+            # acima): `listPrice=3049` vs. `sellingPrice=2609` — ~14% de
+            # desconto ativo agora.
             "Consul": {
                 "url": "https://www.consul.com.br/geladeira-consul-frost-free-342-litros-evox-crb39ak/p",
                 "preco": 2609.00, "em_estoque": False,
+                "preco_original": 3049.00, "promo_dias": 5,
                 "imagem": "https://consul.vtexassets.com/arquivos/ids/273738/01_Consul_Geladeira_CRB39AK_Imagem_Frontal_Frontal_png_3.jpg?v=639014052388430000",
             },
             # Mesmo modelo CRB39AB no Carrefour — JSON-LD real, em estoque.
+            # DESCONTO REAL À VISTA NO PIX confirmado (visível renderizando
+            # a página real com Playwright, não no JSON-LD — o Carrefour
+            # não publica isso em dado estruturado): R$3.187,00 no
+            # cartão/preço de tabela, R$2.868,30 à vista no PIX (-10%,
+            # exatamente 10% de desconto). Usuário pediu explicitamente pra
+            # mostrar como promoção, com selo "no PIX" (`promo_pix`) pra
+            # deixar claro que não é desconto pra qualquer forma de
+            # pagamento — o preço "atual"/em destaque vira o do PIX,
+            # `preco_original` continua sendo o de tabela/cartão.
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-consul-frost-free-342-litros-branca-com-gavetao-hortifruti-crb39ab-110v-8950121/p",
-                "preco": 3187.00, "em_estoque": True,
+                "preco": 2868.30, "em_estoque": True,
+                "preco_original": 3187.00, "promo_dias": 10, "promo_pix": True,
                 "imagem": "https://carrefourbr.vtexassets.com/arquivos/ids/181487971/image-0.jpg?v=638935408554630000",
             },
             # Mesmo modelo CRB39AB na Americanas — JSON-LD real (marketplace,
@@ -432,9 +454,13 @@ PRODUTOS = [
                 "preco": 2499.00, "em_estoque": True,
             },
             # Mesmo modelo CRB39AB na Fast Shop — JSON-LD real, em estoque.
+            # PROMOÇÃO REAL confirmada: `listPriceWithTaxes=3908` vs.
+            # `price=2902.50` — ~26% de desconto, a maior das achadas nesta
+            # rodada.
             "Fast Shop": {
                 "url": "https://site.fastshop.com.br/refrigerador-consul-frost-free-342-litros-crb39ab---127-volts-95798/p",
                 "preco": 2902.50, "em_estoque": True,
+                "preco_original": 3908.00, "promo_dias": 6,
             },
             # Mesmo modelo CRB39AB na Kabum — JSON-LD real.
             "Kabum": {
@@ -594,10 +620,14 @@ PRODUTOS = [
                 "imagem": "https://www.lg.com/content/dam/channel/wcms/br/images/geladeiras/gn-b392pqwb/gallery/Basic-450.jpg",
             },
             # Modelo próximo (GN-B392PLMB, mesma família 392/395L) no
-            # Carrefour — JSON-LD real, em estoque.
+            # Carrefour — JSON-LD real, em estoque. DESCONTO REAL À VISTA
+            # NO PIX confirmado (mesma técnica da CRB39 acima — visível
+            # renderizando a página, não no JSON-LD): R$3.156,84 no cartão,
+            # R$2.999,00 no PIX (-5%). `promo_pix=True`.
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-lg-2-portas-frost-free-inverter-395l-duplex-inox-look-110v-gnb392plmb-3376389/p",
-                "preco": 3156.84, "em_estoque": True,
+                "preco": 2999.00, "em_estoque": True,
+                "preco_original": 3156.84, "promo_dias": 10, "promo_pix": True,
             },
             # Modelo próximo (GN-B392PLM) na Americanas — JSON-LD achado,
             # mas com "price": 0 (mesmo problema de catálogo). Só `url`.
@@ -605,10 +635,13 @@ PRODUTOS = [
                 "url": "https://www.americanas.com.br/geladeira-lg-frost-free-inverter-395l-duplex-inox-look-gn-b392plm-220v-17592d4yo3629823/p",
             },
             # Modelo próximo (mesma família GN-B392) na Fast Shop —
-            # JSON-LD real, em estoque.
+            # JSON-LD real, em estoque. PROMOÇÃO REAL confirmada:
+            # `listPriceWithTaxes=3699` vs. `price=3477.06` — ~6% de
+            # desconto ativo agora.
             "Fast Shop": {
                 "url": "https://site.fastshop.com.br/geladeira-lg-frost-free-inverter-395l-duplex-branca-110v-129095/p",
                 "preco": 3477.06, "em_estoque": True,
+                "preco_original": 3699.00, "promo_dias": 9,
                 "imagem": "https://fastshopbr.vtexassets.com/arquivos/ids/2484520/17582049198853.jpg?v=638973653955830000",
             },
             # Família GN-B392 (GN-B392PLMB, mesma capacidade 395L) na
@@ -782,18 +815,24 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
             else:
                 em_estoque = random.random() > 0.08  # ~92% em estoque, resto "esgotado" (realismo)
 
-            # Promoção temporária REAL (só 3 lojas hoje — ver comentários
-            # pontuais em `lojas_reais`, achadas comparando o estado
-            # embutido `priceRange.listPrice` vs. `priceRange.sellingPrice`
-            # de cada página VTEX, não um "% OFF" genérico de banner).
+            # Promoção temporária REAL (ver comentários pontuais em
+            # `lojas_reais` — achadas de duas formas: comparando o estado
+            # embutido `priceRange.listPrice` vs. `priceRange.sellingPrice`/
+            # `listPrice`/`listPriceWithTaxes` do JSON-LD de cada página
+            # VTEX — nunca um "% OFF" genérico de banner de pagamento — ou,
+            # no caso do Carrefour, um desconto de verdade só que
+            # condicional à forma de pagamento, "à vista no PIX"; marcado
+            # via `promo_pix` pra mudar só o TEXTO do selo, não a lógica).
             # `promo_dias` é relativo ao momento do seed (não uma data fixa
             # gravada no dicionário) — do mesmo jeito que `atualizado_ha_horas`
             # já é relativo a "agora" logo abaixo.
             preco_original = None
             promo_valid_until = None
+            promo_pix = False
             if dado_real and "preco_original" in dado_real:
                 preco_original = Decimal(str(dado_real["preco_original"]))
                 promo_valid_until = datetime.utcnow() + timedelta(days=dado_real.get("promo_dias", 5))
+                promo_pix = dado_real.get("promo_pix", False)
 
             atualizado_ha_horas = random.randint(1, 6) if usou_dado_real else random.randint(1, 30)
 
@@ -802,6 +841,7 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
                 store=loja,
                 price=preco,
                 original_price=preco_original,
+                promo_pix=promo_pix,
                 promo_valid_until=promo_valid_until,
                 url=url,
                 in_stock=em_estoque,

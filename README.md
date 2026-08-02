@@ -936,6 +936,60 @@ pra popular os dados mockados desta vez. Ensinar `atualizacao_precos.py`
 a reconhecer esse padrão em toda página VTEX seria o próximo passo
 natural se isso virar prioridade.
 
+## Promoções — rodada 2 (usuário achou mais promoções que eu não tinha pego: Fast Shop, Consul, Carrefour)
+
+Usuário testou a rodada 1 e reportou, em mensagens separadas: "tem umas
+promoção no fast shop que você não colocou", "tem uma que eu vi sem
+estoque na americanas que você não colocou também" e "vi promoções no
+carrefour que não foram adicionadas". Auditoria mais profunda confirmou
+que a técnica da rodada 1 (só `priceRange.listPrice`/`sellingPrice`, o
+padrão específico do tema Apollo/GraphQL da Electrolux/Brastemp) **não
+cobria outros formatos de desconto que outras lojas VTEX usam** — cada
+uma expõe isso de um jeito ligeiramente diferente:
+
+- **Fast Shop e Consul (própria loja)**: o desconto aparece direto no
+  JSON-LD de `Offer`, campo `listPrice`/`listPriceWithTaxes` ao lado de
+  `price` — mais fácil de achar que o padrão Apollo, só que eu não tinha
+  procurado por esse nome de campo na 1ª rodada. Achei **4 promoções reais
+  novas**: Brastemp BRM44 na Fast Shop (de R$3.399 por R$3.001,05, ~12%),
+  Consul CRB39 na Fast Shop (de R$3.908 por R$2.902,50, ~26%, a maior
+  achada até agora), Consul CRB39 na própria Consul (de R$3.049 por
+  R$2.609, ~14%) e LG GC-B na Fast Shop (de R$3.699 por R$3.477,06, ~6%).
+- **Americanas**: investigado a fundo (achei e corrigi de quebra um bug
+  real no parser de auditoria — o JSON-LD da Americanas usa `"offers":
+  [...]` como LISTA direto, não `{"offers": {...}}` como as outras lojas,
+  então meu primeiro script de conferência simplesmente pulava essas 3
+  entradas sem checar nada). Reconferidos os 3 produtos com preço real
+  registrado (Electrolux DF44, Brastemp BRM44, Consul CRB39): **os 3
+  batem exatamente com o que já tínhamos** (mesmo preço, mesmo estoque)
+  — nenhuma promoção nem divergência de estoque encontrada nesses.
+  **Achado real, mas separado**: o preço da Brastemp BRM44 na loja oficial
+  da BRASTEMP (não Americanas) estava com `em_estoque: False` desatualizado
+  — reconferido agora, o JSON-LD mostra `InStock` — corrigido pra `True`.
+- **Carrefour**: o "desconto" que existe de verdade lá **não é uma
+  promoção de tabela igual às outras** — é um desconto à vista no PIX
+  (ex: Consul CRB39 sai R$3.187,00 no cartão mas R$2.868,30 pagando PIX,
+  exatamente -10%; LG GC-B sai R$3.156,84 no cartão mas R$2.999,00 no PIX,
+  -5%). Isso só aparece VISUALMENTE na página renderizada (Playwright),
+  não em nenhum campo do JSON-LD estático — motivo de não ter aparecido
+  na varredura da rodada 1. Perguntei ao usuário se deveria tratar igual
+  às outras promoções ou sinalizar que é condicional ao PIX — escolheu
+  **sinalizar** ("Mostrar com selo 'no PIX'").
+
+**Novo campo `Price.promo_pix`** (Boolean, migração
+`94d98aef8c93_adiciona_promo_pix_em_price.py`, `server_default=false` pra
+não quebrar linhas já existentes numa produção não reseedada) — só muda o
+TEXTO do selo (`"-10% no PIX"` em vez de `"-10%"`) nos 3 lugares que já
+mostravam desconto (hero, tabela comparativa, card) e no preço em destaque
+continua sendo o valor do PIX (o "mais chamativo"/mais barato de fato),
+com o preço de cartão riscado como `original_price`. Painel admin ganhou
+um checkbox "Só no PIX" ao lado dos campos de promoção já existentes.
+
+Rodada 2 fecha com **9 promoções reais no total** (3 da rodada 1 + 4 novas
+JSON-LD + 2 PIX do Carrefour) e 1 correção de estoque. Reseed +
+verificação com curl confirmaram cada uma renderizando com o texto/selo
+certo.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo
