@@ -783,6 +783,86 @@ Mesma regra estrutural das outras (ver seção acima): Fast Shop só entra
 na seleção de lojas de um produto onde já existe `Price.url` real —
 nunca aparece com link de homepage.
 
+## Kabum reconsiderada + Angeloni nova (usuário pediu "pelo menos mais 3")
+
+Depois da Fast Shop, usuário pediu explicitamente uma lista de outras
+lojas candidatas e depois reforçou "pelo menos mais 3". Investigação
+extensa, resultado honesto: **2 entraram, o resto foi descartado com
+motivo documentado** (não dava pra forçar 3 só pra bater a meta):
+
+- **Kabum reconsiderada** — descartada cedo na sessão anterior por um
+  sitemap de eletrodomésticos fraco (`eletrodomesticos.xml` só achava
+  produto de linha diferente). WebSearch focado por produto (não sitemap)
+  achou cobertura real bem melhor: JSON-LD confirmado com preço+estoque
+  pra 4 dos 10 produtos (Electrolux DF44, Brastemp BRE80 — aproximado pro
+  BRO85ME, mesma classe French Door —, Consul CRB39, Samsung RT46).
+- **Angeloni adicionada** — rede de supermercados/eletro de Santa
+  Catarina, sem `robots.txt` (ausência = sem restrição) e sem bloqueio
+  testado. JSON-LD real confirmado pra 1 produto (Consul CRB39, modelo
+  aproximado CRB39A).
+- **Candidatas testadas e descartadas** (documentadas aqui pra não
+  reinvestigar do zero numa sessão futura): Casa & Vídeo (alcançável, mas
+  as URLs indexadas testadas caíam em conteúdo genérico de homepage, não
+  produto real); Novo Mundo (homepage VTEX funciona, mas página de produto
+  é 100% renderizada por JS — zero JSON-LD/texto estático, mesma categoria
+  de limitação que a Samsung tinha antes de achar `shop.samsung.com`, só
+  que sem um domínio alternativo pra tentar); Balaroti (404 na única URL
+  indexada testada); Pernambucanas (sem correspondência de categoria de
+  eletrodomésticos linha branca no catálogo); Zema.com.br (o domínio
+  redireciona pra uma empresa estrangeira sem relação nenhuma — pista
+  falsa); Lojas MM (desafio JS anti-bot tipo Zenedge — mesma categoria de
+  proteção que já bloqueava Magazine Luiza/Casas Bahia); Insinuante
+  (`robots.txt` explicitamente permite bots de IA, mas a única URL de
+  produto testada deu 404).
+
+Mesma regra estrutural de sempre (Carrefour/Americanas/Fast Shop): Kabum e
+Angeloni só entram na seleção de um produto onde já existe `Price.url`
+real confirmada — nunca link de homepage.
+
+## Amazon: de busca genérica pra página específica de produto
+
+Usuário reportou (com print de tela): "na amazon ele só vai pra página
+geral, e não pra página específica do produto mesmo" — depois que
+Carrefour/Americanas/Fast Shop/Kabum/Angeloni ganharam links de produto
+reais nas rodadas anteriores, a Amazon ficou sendo a única loja que ainda
+caía no fallback de busca (`/s?k=...`, ver `url_busca_de_apoio` em
+`pricing.py`) em vez de abrir o produto certo — exatamente o mesmo tipo de
+bug já corrigido nas outras.
+
+Diferente das outras lojas, a Amazon **não publica JSON-LD** em nenhuma
+página de produto (confirmado inspecionando o HTML puro de várias páginas
+reais) — então a extração não podia ser só "buscar `application/ld+json`"
+como sempre. Em vez disso, cada um dos 10 produtos foi:
+1. Localizado por WebSearch (`site:amazon.com.br geladeira {marca} {modelo}
+   {litros}`) — sempre achando pelo menos um `/dp/{ASIN}` real.
+2. Verificado por `requests` simples (não só status 200 — comparado o
+   `<title>` da página contra o modelo esperado, palavra por palavra).
+3. **Verificado AO VIVO com Playwright** (`#availability`, `#corePrice_feature_div`)
+   — não dá pra confiar em status HTTP aqui: todas as páginas retornam 200
+   mesmo quando o produto está indisponível há tempo indeterminado, e o
+   HTML estático tem múltiplos "feature_div" (inclusive um chamado
+   `outOfStockBuyBox_feature_div` que, ironicamente, contém um formulário de
+   "adicionar ao carrinho" completo por baixo — só a renderização real via
+   navegador revela qual estado está de fato visível).
+
+Resultado: **8 dos 10 produtos** estão com o mesmo modelo real indisponível
+na Amazon agora ("Não disponível. Não temos previsão de quando este produto
+estará disponível novamente.") — `em_estoque: False` gravado explicitamente
+pra cada um (nunca deixado pro sorteio aleatório, que erraria mostrando "em
+estoque" a maioria das vezes). Só **2 produtos** (Electrolux IF55, LG GC-B)
+têm oferta ativa com preço real confirmado na página. Um produto (Consul
+CRB39) ficou ambíguo — a página existe e é real, mas mostra "Nenhuma opção
+de compra em destaque" sem preço nem vendedor claro — registrado só com
+`url`, sem inventar preço nem status de estoque que a própria página não
+afirma. Robots.txt da Amazon (`Allow: /*/dp/`) permite expressamente esse
+tipo de acesso — nenhuma técnica de disfarce/evasão foi necessária.
+
+Isso resolve o pedido do usuário (toda oferta agora aponta pro produto
+específico) mesmo nos casos "esgotado" — diferente da busca genérica
+anterior, que não indicava nada sobre o produto em si, agora o usuário vê
+exatamente qual vendedor/modelo está sem estoque, com um link real que ele
+pode conferir.
+
 ## Estrutura
 
 Ver `prompt-claude-code-comparador-precos.md` (brief original) pra escopo

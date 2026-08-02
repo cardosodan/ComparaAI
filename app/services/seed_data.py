@@ -68,6 +68,27 @@ LOJAS = [
         "trust_score": 4.4,
     },
     {
+        # Kabum — testada inicialmente achando só produtos de marca
+        # diferente (sitemap "eletrodomesticos.xml" limitado), mas o
+        # catálogo de verdade (via WebSearch) tem cobertura boa: 4 dos
+        # 10 produtos confirmados com JSON-LD real.
+        "name": "Kabum",
+        "type": Store.TIPO_ONLINE,
+        "website_url": "https://www.kabum.com.br",
+        "logo_url": "/static/img/lojas/kabum.svg",
+        "trust_score": 4.5,
+    },
+    {
+        # Angeloni — rede de supermercados/eletro de Santa Catarina, sem
+        # robots.txt (ausência = sem restrição) e sem bloqueio nenhum
+        # testado.
+        "name": "Angeloni",
+        "type": Store.TIPO_ONLINE,
+        "website_url": "https://www.angeloni.com.br/eletro",
+        "logo_url": "/static/img/lojas/angeloni.svg",
+        "trust_score": 4.2,
+    },
+    {
         "name": "Electrolux",
         "type": Store.TIPO_ONLINE,
         "website_url": "https://loja.electrolux.com.br",
@@ -141,27 +162,37 @@ LOJAS = [
 #
 # As chaves possíveis são: "Bemol", o NOME DA PRÓPRIA MARCA (Electrolux/
 # Brastemp/Consul/Samsung/LG — cada produto só usa a chave da sua própria
-# marca, nunca a de outra) e "Carrefour". Magazine Luiza e Casas Bahia
-# foram removidas do catálogo inteiro (bloqueiam toda requisição
-# automatizada, mesmo com Playwright sem disfarce nenhum — ver
-# atualizacao_precos.py e README) e substituídas pelo Carrefour, que não
-# bloqueia.
+# marca, nunca a de outra), "Carrefour", "Americanas", "Fast Shop", "Kabum",
+# "Angeloni" e "Amazon". Magazine Luiza e Casas Bahia foram removidas do
+# catálogo inteiro (bloqueiam toda requisição automatizada, mesmo com
+# Playwright sem disfarce nenhum — ver atualizacao_precos.py e README).
 #
 # Cada entrada tem `url` (obrigatório) e, quando disponível, `imagem`/
 # `preco`/`em_estoque`. Bemol/Brastemp/Consul/Electrolux (mesma plataforma
-# VTEX) e Carrefour (idem, quando o catálogo dele não está com preço
-# zerado — ver comentários pontuais abaixo) expõem os campos via JSON-LD.
-# Samsung e LG **não publicam preço/estoque em lugar nenhum estático** — a
-# busca por produto nessas duas confirmou que são sites carregados por
-# JavaScript (o preço só aparece depois de uma chamada de API feita pelo
-# navegador, invisível pra qualquer requisição HTTP simples) — resolvido
-# com Playwright pra Samsung (não bloqueia automação), mas não pra LG
-# (bloqueia com 403 via Akamai, mesma categoria de proteção anti-bot que
-# já bloqueava Magazine Luiza/Casas Bahia). O que não tem preço/estoque
-# real continua SIMULADO (`popular_produtos_e_precos` decide isso campo a
-# campo, não é tudo ou nada). Ainda assim resolve o pedido central do
-# usuário — entrar na página REAL e específica daquele produto — mesmo sem
-# conseguir sincronizar preço ao vivo com essas marcas.
+# VTEX) e Carrefour/Americanas/Fast Shop/Kabum/Angeloni (idem, quando o
+# catálogo da loja não está com preço zerado — ver comentários pontuais
+# abaixo) expõem os campos via JSON-LD estático. Samsung e LG **não
+# publicam preço/estoque em lugar nenhum estático** — a busca por produto
+# nessas duas confirmou que são sites carregados por JavaScript (o preço só
+# aparece depois de uma chamada de API feita pelo navegador, invisível pra
+# qualquer requisição HTTP simples) — resolvido com Playwright pra Samsung
+# (não bloqueia automação), mas não pra LG (bloqueia com 403 via Akamai,
+# mesma categoria de proteção anti-bot que já bloqueava Magazine Luiza/
+# Casas Bahia). AMAZON também não publica JSON-LD nenhum (nem preço nem
+# estoque em atributo estático) — mas ao contrário de Samsung/LG, Amazon
+# não bloqueia Playwright, então cada uma das 10 páginas de produto real
+# foi verificada AO VIVO (não só o status HTTP, que sempre retorna 200
+# mesmo com o item indisponível): a maioria mostrou "Não disponível. Não
+# temos previsão de quando este produto estará disponível novamente." —
+# nesses casos `em_estoque: False` é gravado EXPLICITAMENTE (não fica de
+# fora nem cai no sorteio aleatório, que erraria mostrando "em estoque" a
+# maior parte das vezes) — só 2 produtos (Electrolux IF55, LG GC-B) têm
+# preço real confirmado em estoque na Amazon no momento desta verificação.
+# O que não tem preço/estoque real continua SIMULADO
+# (`popular_produtos_e_precos` decide isso campo a campo, não é tudo ou
+# nada). Ainda assim resolve o pedido central do usuário — entrar na
+# página REAL e específica daquele produto — mesmo sem conseguir
+# sincronizar preço ao vivo com essas marcas/lojas.
 PRODUTOS = [
     {
         "brand": "Electrolux", "model": "DF44", "nome_curto": "Frost Free 382L",
@@ -203,6 +234,25 @@ PRODUTOS = [
                 "url": "https://www.americanas.com.br/geladeira-electrolux-371-litros-frost-free-branco-dfn41-127v--h17i38691a352141/p",
                 "preco": 3399.99, "em_estoque": False,
             },
+            # Mesmo modelo DFN41 na Kabum — JSON-LD real.
+            "Kabum": {
+                "url": "https://www.kabum.com.br/produto/122048/geladeira-refrigerador-electrolux-dfn41-371l-frost-free-duplex-127v-branco",
+                "preco": 3015.52, "em_estoque": False,
+                "imagem": "https://images8.kabum.com.br/produtos/fotos/sync_mirakl/122048/Geladeira-Refrigerador-Electrolux-DFN41-371L-Frost-Free-Duplex-127V-Branco_1709151493_g.jpg",
+            },
+            # Mesmo modelo DFN41 na Amazon — página real confirmada (título
+            # bate exato: "Geladeira Electrolux Frost Free 371L Função Drink
+            # Express Duplex Branca (DFN41)"), mas SEM JSON-LD (Amazon não
+            # publica) — verificado AO VIVO com Playwright (não só o status
+            # HTTP): "Não disponível. Não temos previsão de quando este
+            # produto estará disponível novamente." `em_estoque: False`
+            # explícito de propósito, pra não cair no sorteio aleatório
+            # (que erraria mostrando "em estoque" ~92% das vezes).
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Refrigerador-Frost-Electrolux-litros-DFN41/dp/B07BBVX8XR",
+                "em_estoque": False,
+                "imagem": "https://m.media-amazon.com/images/I/31ndOiwQRQL._AC_SX679_.jpg",
+            },
         },
     },
     {
@@ -234,6 +284,17 @@ PRODUTOS = [
             # com "price": 0 (mesmo problema de catálogo). Só `url`.
             "Americanas": {
                 "url": "https://www.americanas.com.br/geladeira-electrolux-frost-free-inverter-490l-inverse-inox-look-ib7s-7489466541/p",
+            },
+            # Mesmo modelo IB7S na Amazon — sem JSON-LD, mas confirmado AO
+            # VIVO com Playwright (título bate exato): em estoque, com
+            # preço real visível na página. Uma das 2 únicas entradas de
+            # Amazon com preço/estoque de verdade (junto do LG GC-B abaixo)
+            # — a maioria dos outros produtos está indisponível na Amazon
+            # no momento desta verificação.
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Geladeira-Electrolux-Efficient-AutoSense-Inverse/dp/B0CL7XV8NN",
+                "preco": 4221.55, "em_estoque": True,
+                "imagem": "https://m.media-amazon.com/images/I/413y5xpxNxL._AC_SX679_.jpg",
             },
         },
     },
@@ -272,6 +333,12 @@ PRODUTOS = [
                 "preco": 3001.05, "em_estoque": True,
                 "imagem": "https://fastshopbr.vtexassets.com/arquivos/ids/3224680/17644568029130.jpg?v=639018782689000000",
             },
+            # Mesmo modelo BRM44HB na Amazon — página real confirmada,
+            # indisponível (Playwright, sem previsão de retorno).
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Geladeira-Brastemp-Duplex-litros-Branca/dp/B084KLPY1J",
+                "em_estoque": False,
+            },
         },
     },
     {
@@ -301,6 +368,22 @@ PRODUTOS = [
             # também com "price": 0 (mesmo problema de catálogo). Só `url`.
             "Americanas": {
                 "url": "https://www.americanas.com.br/geladeira-frost-free-inverse-2-portas-588-litros-bre85ak-brastemp-7462033239/p",
+            },
+            # BRO85ME (French Door, 559L) — outra Brastemp Inverse/French
+            # Door na mesma classe de capacidade, achada real na Kabum
+            # (JSON-LD, em estoque). Modelo de linha diferente (BRO vs
+            # BRE), mesma aproximação já usada nas outras lojas pra essa
+            # capacidade.
+            "Kabum": {
+                "url": "https://www.kabum.com.br/produto/993303/refrigerador-french-door-brastemp-de-03-portas-frost-free-com-559-litros-eclipse-collection-bro85me-220v",
+                "preco": 6162.61, "em_estoque": True,
+                "imagem": "https://images3.kabum.com.br/produtos/fotos/sync_mirakl/993303/large/Refrigerador-French-Door-Brastemp-De-03-Portas-Frost-Free-Com-559-Litros-Black-Inox-Bro85me-220v_1770929040.jpg",
+            },
+            # Mesmo modelo BRE85AK na Amazon — página real confirmada,
+            # indisponível (Playwright, sem previsão de retorno).
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Geladeira-Brastemp-Inverse-litros-BRE85AK/dp/B0BVSRSRCW",
+                "em_estoque": False,
             },
         },
     },
@@ -338,6 +421,27 @@ PRODUTOS = [
                 "url": "https://site.fastshop.com.br/refrigerador-consul-frost-free-342-litros-crb39ab---127-volts-95798/p",
                 "preco": 2902.50, "em_estoque": True,
             },
+            # Mesmo modelo CRB39AB na Kabum — JSON-LD real.
+            "Kabum": {
+                "url": "https://www.kabum.com.br/produto/122096/geladeira-frost-free-1-porta-342-litros-consul-crb39ab",
+                "preco": 4897.04, "em_estoque": False,
+                "imagem": "https://images6.kabum.com.br/produtos/fotos/sync_mirakl/122096/Geladeira-Consul-Domest-342l-Frost-Free-1-Porta-220V-Branco-CRB39AB_1711981697_g.jpg",
+            },
+            # Modelo próximo CRB39A na Angeloni — JSON-LD real.
+            "Angeloni": {
+                "url": "https://www.angeloni.com.br/eletro/geladeira-frost-free-consul-facilite-1-porta-342l-branca-crb39a-2480183/p",
+                "preco": 2499.00, "em_estoque": False,
+                "imagem": "https://eletroangeloni.vtexassets.com/arquivos/ids/175612/2480183_1_zoom.jpg?v=637931633608330000",
+            },
+            # Mesmo modelo CRB39AB na Amazon — página real confirmada
+            # (título bate exato), mas sem oferta em destaque no momento
+            # ("Nenhuma opção de compra em destaque" / só "ver todas as
+            # opções de compra", sem preço nem vendedor claro na página) —
+            # só `url`, sem inventar preço nem status de estoque quando a
+            # própria página não afirma nenhum dos dois com clareza.
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Geladeira-Consul-litros-Gavet%C3%A3o-Hortifruti/dp/B076BDN8TJ",
+            },
         },
     },
     {
@@ -367,6 +471,13 @@ PRODUTOS = [
             # também com "price": 0 (mesmo problema de catálogo). Só `url`.
             "Americanas": {
                 "url": "https://www.americanas.com.br/geladeira-consul-frost-free-duplex-com-espaco-flex-410l-branca-crm50fb-7512217016/p",
+            },
+            # Mesmo modelo CRM50FB na Amazon — página real confirmada
+            # (título bate exato, inclusive o código do modelo), indisponível
+            # (Playwright, sem previsão de retorno).
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Refrigerador-Consul-Litros-CRM50FB-Branca/dp/B0CDXQWPZ7",
+                "em_estoque": False,
             },
         },
     },
@@ -398,6 +509,19 @@ PRODUTOS = [
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-samsung-evolution-rt46-com-powervolt-inverter-duplex-460l-inox-look-bivolt-mp929908731/p",
             },
+            # Mesmo modelo RT46 na Kabum — JSON-LD real.
+            "Kabum": {
+                "url": "https://www.kabum.com.br/produto/148048/geladeira-samsung-evolution-com-powervolt-inverter-duplex-460l-black-inox-look-rt46",
+                "preco": 4084.05, "em_estoque": False,
+                "imagem": "https://images8.kabum.com.br/produtos/fotos/sync_mirakl/148048/Geladeira-Samsung-Evolution-Com-PowerVolt-Inverter-Duplex-460L-Black-Inox-Look-RT46_1698245300_g.jpg",
+            },
+            # Mesmo modelo RT46 na Amazon — página real confirmada (título
+            # bate exato), indisponível (Playwright, sem previsão de
+            # retorno).
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Geladeira-Samsung-Evolution-POWERvolt-Inverter/dp/B09QW39MY7",
+                "em_estoque": False,
+            },
         },
     },
     {
@@ -423,6 +547,13 @@ PRODUTOS = [
             # com "price": 0 (mesmo problema de catálogo). Só `url`.
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/produto/refrigeradorgeladeira-samsung-frost-free-0l-rfrsr-320224374",
+            },
+            # Mesmo modelo RF22R7351SR na Amazon — página real confirmada
+            # (título bate exato, inclusive o sufixo /AZ), indisponível
+            # (Playwright, sem previsão de retorno).
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Refrigerador-French-Samsung-Portas-Cooling/dp/B08NFK4F5R",
+                "em_estoque": False,
             },
         },
     },
@@ -465,6 +596,16 @@ PRODUTOS = [
                 "preco": 3477.06, "em_estoque": True,
                 "imagem": "https://fastshopbr.vtexassets.com/arquivos/ids/2484520/17582049198853.jpg?v=638973653955830000",
             },
+            # Família GN-B392 (GN-B392PLMB, mesma capacidade 395L) na
+            # Amazon — sem JSON-LD, mas confirmado AO VIVO com Playwright:
+            # em estoque, com preço real visível na página. Uma das 2
+            # únicas entradas de Amazon com preço/estoque de verdade (junto
+            # da Electrolux IF55 acima).
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Geladeira-LG-Freezer-Inverter-GN-B392PLMB/dp/B0CJMWC77S",
+                "preco": 3161.07, "em_estoque": True,
+                "imagem": "https://m.media-amazon.com/images/I/41fuFa+6--L._AC_SX679_.jpg",
+            },
         },
     },
     {
@@ -485,6 +626,13 @@ PRODUTOS = [
             "Carrefour": {
                 "url": "https://www.carrefour.com.br/geladeira-smart-lg-side-by-side-inverter-601-litros-inox-220v-com-door-in-door-e-lg-thinq-gs65sdn1-5122953/p",
                 "preco": 12799.00, "em_estoque": True,
+            },
+            # Mesmo modelo GS65SDN1 (idêntico ao já usado no Carrefour
+            # acima) na Amazon — página real confirmada, indisponível
+            # (Playwright, sem previsão de retorno).
+            "Amazon": {
+                "url": "https://www.amazon.com.br/Refrigerador-LG-Lancaster-Escovado-GS65SDN1/dp/B07B53HJY2",
+                "em_estoque": False,
             },
         },
     },
@@ -545,27 +693,35 @@ def popular_produtos_e_precos(categoria_geladeiras: Category, lojas: list[Store]
         produtos.append(produto)
 
         # Lojas online "universais" (Amazon, Carrefour, Americanas, Fast
-        # Shop) — comparar o máximo de ofertas possível é o pedido do
-        # usuário ("quero que todos os produtos estejam com todos os
-        # links de todas as marcas funcionando" + depois "eu queria ter
-        # mais opções de lugares para comprar" + "eu pedi OPÇÕES, não uma
-        # opção a mais"), MAS Carrefour/Americanas/Fast Shop só têm dado
-        # real pra ALGUNS produtos (WebSearch não acha tudo, e vários
-        # links indexados já saíram do ar) — incluir uma delas em produto
-        # SEM entrada real repetiria o mesmo bug corrigido 2x nesta sessão
-        # (Carrefour no Electrolux DF44, Bemol no LG): sem `Price.url`, a
-        # oferta cai no fallback de HOMEPAGE, que parece um link quebrado/
-        # sem sentido pro usuário. Por isso, diferente da Amazon (busca
-        # sempre funciona, entra sempre), essas três só entram no produto
-        # onde JÁ existe uma URL real confirmada em `lojas_reais` —
-        # garante estruturalmente que NENHUMA oferta delas caia em
-        # homepage, mesmo pra loja nova/produto futuro que eu esqueça de
-        # pesquisar por completo.
+        # Shop, Kabum, Angeloni) — comparar o máximo de ofertas possível é
+        # o pedido do usuário ("quero que todos os produtos estejam com
+        # todos os links de todas as marcas funcionando" + depois "eu
+        # queria ter mais opções de lugares para comprar" + "eu pedi
+        # OPÇÕES, não uma opção a mais" + "na amazon ele só vai pra página
+        # geral, não pra página específica do produto"), MAS nenhuma delas
+        # tem dado real pra TODOS os produtos (WebSearch não acha tudo, e
+        # vários links indexados já saíram do ar) — incluir uma delas em
+        # produto SEM entrada real repetiria o mesmo bug corrigido 2x nesta
+        # sessão (Carrefour no Electrolux DF44, Bemol no LG): sem
+        # `Price.url`, a oferta cairia no fallback de HOMEPAGE (ou, no caso
+        # da Amazon antes desta rodada, na busca genérica `/s?k=`), que
+        # parece um link quebrado/sem sentido pro usuário. Por isso Amazon
+        # é a ÚNICA exceção que ainda entra sempre (`nome == "Amazon"`
+        # abaixo) — mesmo pros produtos sem `lojas_reais["Amazon"]` (não há
+        # nenhum caso hoje, os 10 produtos já têm entrada real de Amazon,
+        # mas a exceção continua como rede de segurança pra um produto
+        # futuro sem cobertura) — porque a busca `/s?k=` da Amazon sempre
+        # funciona como fallback aceitável, diferente de uma homepage
+        # genérica de qualquer outra loja. Carrefour/Americanas/Fast Shop/
+        # Kabum/Angeloni só entram no produto onde JÁ existe uma URL real
+        # confirmada em `lojas_reais` — garante estruturalmente que NENHUMA
+        # oferta delas caia em homepage, mesmo pra loja nova/produto futuro
+        # que eu esqueça de pesquisar por completo.
         lojas_online = [l for l in lojas if l.type == Store.TIPO_ONLINE]
         lojas_fisicas = [l for l in lojas if l.type == Store.TIPO_FISICA]
 
         selecionadas = []
-        for nome in ("Amazon", "Carrefour", "Americanas", "Fast Shop"):
+        for nome in ("Amazon", "Carrefour", "Americanas", "Fast Shop", "Kabum", "Angeloni"):
             loja_universal = next((l for l in lojas_online if l.name == nome), None)
             if loja_universal and (nome == "Amazon" or nome in lojas_reais):
                 selecionadas.append(loja_universal)
