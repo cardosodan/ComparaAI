@@ -161,11 +161,18 @@ PRODUTOS = [
                 "preco": 3469.00, "em_estoque": True,
                 "imagem": "https://electrolux.vtexassets.com/arquivos/ids/214052/Refrigerador_DFN41_Frontal_1000x1000_principal.jpg?v=638804364273430000",
             },
-            # Nenhuma URL de Carrefour funcionou pra esse modelo específico
-            # (todas as tentativas de DFN41 encontradas via WebSearch deram
-            # 404 — anúncio removido/desatualizado no índice de busca) — sem
-            # entrada, cai no simulado, mesmo tipo de lacuna honesta já
-            # documentada pra LG/Bemol.
+            # Mesmo modelo DFN41 no Carrefour — 1ª rodada de busca só achou
+            # URLs "bonitas" (com o nome do produto no path) que 404avam;
+            # usuário reportou clicar e cair na HOMEPAGE do Carrefour em vez
+            # do produto (bug real — sem essa entrada, `url_busca_de_apoio`
+            # caía no fallback de homepage). Achado com uma 2ª busca focada
+            # no formato canônico `/produto/{slug}-{id}` — página real,
+            # confirmada (200 + JSON-LD de Product), mas com "price": 0
+            # (mesmo problema de catálogo visto em outros produtos no
+            # Carrefour). Só `url`.
+            "Carrefour": {
+                "url": "https://www.carrefour.com.br/produto/geladeirarefrigerador-frost-free-electrolux-dfn-litros-branco-244624",
+            },
         },
     },
     {
