@@ -97,6 +97,14 @@ class Product(db.Model):
             return None
         return min(precos, key=lambda p: p.preco_atual)
 
+    @property
+    def esgotado(self) -> bool:
+        """True quando TODAS as lojas desse produto estão sem estoque —
+        pedido do usuário: mostrar "Esgotado" já no card/topo da página,
+        sem precisar abrir a tabela comparativa pra descobrir que nenhuma
+        oferta está disponível."""
+        return bool(self.prices) and not self.precos_em_estoque
+
     def __repr__(self):
         return f"<Product {self.brand} {self.model}>"
 
